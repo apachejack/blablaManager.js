@@ -229,7 +229,7 @@ var params = {
 
 	}, 
 
-	sourceGetPreviousMessages: function(searchData, controllerCallback){
+	sourcePreviousUnloadedMessages: function(searchData, controllerCallback){
 		/*
 			
 		*/
@@ -289,10 +289,14 @@ cc.fetchDataConversation(function(conversation){
 		console.log(data);
 	});
 
-	cc.getPreviousMessages(10, function(data){
+	cc.getPreviousUnloadedMessages(10, function(data){
 		console.log(data.messages);
 		console.log('getting old messages');
 	});
+
+
+	console.log('getting message');
+	console.log(cc.getCDS().getMessage(1455));
 
 
 });

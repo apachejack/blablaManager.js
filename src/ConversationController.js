@@ -62,8 +62,8 @@ var ConversationController = function(ConversationDataStore, params){
 		this.getSource().setConnectionStatus = params.setConnectionStatus;
 	}
 
-	if(_.isFunction(params.sourceGetPreviousMessages)){
-		this.getSource().getPreviousMessages = params.sourceGetPreviousMessages;
+	if(_.isFunction(params.sourcePreviousUnloadedMessages)){
+		this.getSource().previousUnloadedMessages = params.sourcePreviousUnloadedMessages;
 	}
 
 	this.onCreateConversation();
@@ -176,10 +176,10 @@ ConversationController.prototype.fetchDataMessages = function(callbackFn)
 }
 
 
-ConversationController.prototype.getPreviousMessages = function(requested_messages, callbackFn)
+ConversationController.prototype.getPreviousUnloadedMessages = function(requested_messages, callbackFn)
 {
-	if(!_.isFunction(this.getSource().getPreviousMessages)){
-		console.error('Must define params.getPreviousMessages before use getPreviousMessages');
+	if(!_.isFunction(this.getSource().previousUnloadedMessages)){
+		console.error('Must define params.sourcePreviousUnloadedMessages before use getPreviousUnloadedMessages');
 		return false;
 	}
 
@@ -200,7 +200,7 @@ ConversationController.prototype.getPreviousMessages = function(requested_messag
 		if(_.isFunction(callbackFn)) callbackFn({messages: messages});
 	};
 
-	this.getSource().getPreviousMessages(searchData, controllerCallback);
+	this.getSource().previousUnloadedMessages(searchData, controllerCallback);
 }
 
 

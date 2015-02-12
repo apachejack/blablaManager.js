@@ -51,9 +51,8 @@ ConversationDS.prototype.getTotalMessages = function(){
 	return this.getMessages().length;
 }
 
-ConversationDS.prototype.getMessage = function(id){
-	var index = this.getIndexById(this.getMessages(), id);
-	var message = ((index != null) ? message[index] : null);
+ConversationDS.prototype.getMessage = function(idMessage){
+	var message = _.findWhere(this.getMessages(), {id: idMessage});
 	return message;
 }
 
@@ -132,20 +131,18 @@ ConversationDS.prototype._pushMessage = function(message, insertMethod){
 	if(!this._validateMessage(message)) return false;
 	var insertMethod = ((insertMethod == null) ? "PUSH" : insertMethod);
 
-	if(this.getIndexById(this.getMessages(), message.id) == null){
-		if(insertMethod == "PUSH"){
-			return this._messages.push(message);
-		}
-		else if(insertMethod == "UNSHIFT"){
-			return this._messages.unshift(message);
-		}
-	}
-	else{
-		alert('cant add messages with repeated id');
+	if(this.getMessage(message.id) != undefined){
+		console.error('cant add messages with repeated id');
+		return false;
 	}
 
+	if(insertMethod == "PUSH"){
+		return this._messages.push(message);
+	}
+	else if(insertMethod == "UNSHIFT"){
+		return this._messages.unshift(message);
+	}
 	
-	return false;
 }
 
 
@@ -154,13 +151,9 @@ ConversationDS.prototype.getMembers = function(){
 }
 
 ConversationDS.prototype.getMember = function(idMember){
-	var members = this.getMembers();
-	var index = this.getIndexById(members, idMember);
-	var member = ((index != null) ? members[index] : null);
+	var member = _.findWhere(this.getMembers(), {id: idMember});
 	return member;
 }
-	
-
 
 ConversationDS.prototype.addMembers = function(members){
 
@@ -290,14 +283,12 @@ ConversationDS.prototype._validateMember = function(member){
 ConversationDS.prototype._pushMember = function(member){
 	if(!this._validateObjectItem(member)) return false;
 
-	if(this.getIndexById(this.getMembers(), member.id) == null){
-		return this._members.push(member);
+	if(this.getMember(member.id) != undefined){
+		console.error('cant exists members with repeated ids');
+		return false;
 	}
-	else{
-		alert('No puede haber miembros con ids repetidos');
-	}
-	
-	return false;
+
+	return this._members.push(member);
 }
 
 ConversationDS.prototype.resetMembers = function(){
@@ -311,8 +302,6 @@ ConversationDS.prototype._setMembers = function(members){
 ConversationDS.prototype.resetMessages = function(){
 	this._messages = [];
 }
-
-
 
 ConversationDS.prototype.deleteMember = function(idMember){
 	var members = this.getMembers();
