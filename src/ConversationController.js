@@ -10,10 +10,10 @@
 
 var ConversationController = function(ConversationDataStore, params){
 	this._ConversationDataStore = null;
-	this._source = {};
+	this._controllers = {};
 
-	this.getSource = function(){
-		return this._source;
+	this.getControllers = function(){
+		return this._controllers;
 	}
 
 	this.setCDS(ConversationDataStore);
@@ -23,47 +23,47 @@ var ConversationController = function(ConversationDataStore, params){
 	}
 
 	if(_.isFunction(params.onCreateConversation)){
-		this.getSource().onCreateConversation = params.onCreateConversation;
+		this.getControllers().onCreateConversation = params.onCreateConversation;
 	}
 
 	if(_.isFunction(params.sourceMembers)){
-		this.getSource().members = params.sourceMembers;
+		this.getControllers().members = params.sourceMembers;
 	}
 
 	if(_.isFunction(params.sourceMessages)){
-		this.getSource().messages = params.sourceMessages;
+		this.getControllers().messages = params.sourceMessages;
 	}
 
 	if(_.isFunction(params.sourceConversation)){
-		this.getSource().conversation = params.sourceConversation;
+		this.getControllers().conversation = params.sourceConversation;
 	}
 
-	if(_.isFunction(params.sourceSendMessage)){
-		this.getSource().sendMessage = params.sourceSendMessage;
+	if(_.isObject(params.getConversation)){
+		this.getControllers().getConversation = params.getConversation;
 	}
 
-	if(_.isFunction(params.sourceDeleteMessage)){
-		this.getSource().deleteMessage = params.sourceDeleteMessage;
+	if(_.isObject(params.appendNewMessage)){
+		this.getControllers().appendNewMessage = params.appendNewMessage;
 	}
 
-	if(_.isFunction(params.sourceKickMember)){
-		this.getSource().kickMember = params.sourceKickMember;
+	if(_.isObject(params.deleteMessage)){
+		this.getControllers().deleteMessage = params.deleteMessage;
 	}
 
-	if(_.isFunction(params.sourceJoinMember)){
-		this.getSource().joinMember = params.sourceJoinMember;
+	if(_.isObject(params.kickMember)){
+		this.getControllers().kickMember = params.kickMember;
 	}
 
-	if(_.isFunction(params.sourceImWriting)){
-		this.getSource().imWriting = params.sourceImWriting;
+	if(_.isObject(params.joinMember)){
+		this.getControllers().joinMember = params.joinMember;
 	}
 
-	if(_.isFunction(params.setConnectionStatus)){
-		this.getSource().setConnectionStatus = params.setConnectionStatus;
+	if(_.isObject(params.setConnectionStatus)){
+		this.getControllers().connectionStatus = params.setConnectionStatus;
 	}
 
-	if(_.isFunction(params.sourcePreviousUnloadedMessages)){
-		this.getSource().previousUnloadedMessages = params.sourcePreviousUnloadedMessages;
+	if(_.isObject(params.previousUnloadedMessages)){
+		this.getControllers().previousUnloadedMessages = params.previousUnloadedMessages;
 	}
 
 	this.onCreateConversation();
@@ -72,7 +72,7 @@ var ConversationController = function(ConversationDataStore, params){
 
 ConversationController.prototype.onCreateConversation = function()
 {
-	var onCreateConversation = this.getSource().onCreateConversation;
+	var onCreateConversation = this.getControllers().onCreateConversation;
 	if(!_.isFunction(onCreateConversation)){
 		return false;
 	}
@@ -103,7 +103,7 @@ ConversationController.prototype.getIdConversation = function()
 
 ConversationController.prototype.fetchDataConversation = function(callbackFn)
 {
-	if(!_.isFunction(this.getSource().conversation)){
+	if(!_.isFunction(this.getControllers().conversation)){
 		console.error('Must define params.sourceConversation before use fetchDataConversation');
 		return false;
 	}
@@ -124,12 +124,12 @@ ConversationController.prototype.fetchDataConversation = function(callbackFn)
 		if(_.isFunction(callbackFn)) callbackFn(data);
 	};
 
-	this.getSource().conversation(controllerCallback);
+	this.getControllers().conversation(controllerCallback);
 }
 
 ConversationController.prototype.fetchDataMembers = function(callbackFn)
 {
-	if(!_.isFunction(this.getSource().members)){
+	if(!_.isFunction(this.getControllers().members)){
 		console.error('Must define params.sourceMembers before use fetchDataMembers');
 		return false;
 	}
@@ -148,12 +148,12 @@ ConversationController.prototype.fetchDataMembers = function(callbackFn)
 		if(_.isFunction(callbackFn)) callbackFn(members);
 	}
 
-	this.getSource().members(controllerCallback);
+	this.getControllers().members(controllerCallback);
 }
 
 ConversationController.prototype.fetchDataMessages = function(callbackFn)
 {
-	if(!_.isFunction(this.getSource().messages)){
+	if(!_.isFunction(this.getControllers().messages)){
 		console.error('Must define params.sourceMessages before use fetchDataMessages');
 		return false;
 	}
@@ -172,16 +172,44 @@ ConversationController.prototype.fetchDataMessages = function(callbackFn)
 		if(_.isFunction(callbackFn)) callbackFn({messages: messages});
 	};
 
-	this.getSource().messages(controllerCallback);
+	this.getControllers().messages(controllerCallback);
+}
+
+ConversationController.prototype.getConversation = function(callbackFn){
+	if(!_.isObject(this.getControllers().getConversation)){
+		console.error('Must define params.getConversation before use getConversation');
+		return false;
+	}
+
+	var controller = this.getControllers().getConversation;
+	var controllerCallback = {};
+
+	var existsSavedConversation = this.getCDS().existsSavedConversation();
+
+	if(existsSavedConversation){
+		console.log('Accesing conversation from dataStore');
+		controller.render(existsSavedConversation);
+		if(_.isFunction(callbackFn)) callbackFn(existsSavedConversation);
+	}
+	else{
+		console.log('Accesing conversation from source');
+		this.fetchDataConversation(function(conversation){
+			controller.render(conversation);
+			if(_.isFunction(callbackFn)) callbackFn(conversation);
+		});
+	}
+
 }
 
 
 ConversationController.prototype.getPreviousUnloadedMessages = function(requested_messages, callbackFn)
 {
-	if(!_.isFunction(this.getSource().previousUnloadedMessages)){
-		console.error('Must define params.sourcePreviousUnloadedMessages before use getPreviousUnloadedMessages');
+	if(!_.isObject(this.getControllers().previousUnloadedMessages)){
+		console.error('Must define params.previousUnloadedMessages before use getPreviousUnloadedMessages');
 		return false;
 	}
+
+	var controller = this.getControllers().previousUnloadedMessages;
 
 	var searchData = {
 		requested: parseInt(requested_messages), 
@@ -197,45 +225,55 @@ ConversationController.prototype.getPreviousUnloadedMessages = function(requeste
 			var messages = [];
 		}
 
+		controller.render(messages.reverse());
+
 		if(_.isFunction(callbackFn)) callbackFn({messages: messages});
 	};
 
-	this.getSource().previousUnloadedMessages(searchData, controllerCallback);
+	controller.source(searchData, controllerCallback);
 }
 
 
 ConversationController.prototype.kickMember = function(idMember, callbackFn)
 {
+	var controller = this.getControllers().kickMember;
 	var member = this.getCDS().getMember(idMember);
+	console.log('kicking member sdfsfds')
+	console.log(member)
+
 	var controllerCallback = {};
 	var __this = this;
 
-	controllerCallback.success = function(data){
+	controllerCallback.success = function(){		
 		__this.getCDS().deleteMember(idMember);
 		console.log('member kicked correctly');
-		if(_.isFunction(callbackFn)) callbackFn(data);
+		controller.render(member);
+		if(_.isFunction(callbackFn)) callbackFn(member);
 	};
 
-	this.getSource().kickMember(member, controllerCallback);
+	controller.source(member, controllerCallback);
 }
 
 ConversationController.prototype.joinMember = function(member, callbackFn)
 {
+	var controller = this.getControllers().joinMember;
 	var controllerCallback = {};
 	var __this = this;
 
-	controllerCallback.success = function(data){
+	controllerCallback.success = function(member){
 		if(__this.getCDS().addMembers(member)){
 			console.log('member joined correctly');
-			if(_.isFunction(callbackFn)) callbackFn(data);
+			controller.render(member);
+			if(_.isFunction(callbackFn)) callbackFn(member);
 		}
 	};
 
-	this.getSource().joinMember(member, controllerCallback);
+	controller.source(member, controllerCallback);
 }
 
-ConversationController.prototype.sendMessage = function(message, callbackFn)
+ConversationController.prototype.appendNewMessage = function(message, callbackFn)
 {
+	var controller = this.getControllers().appendNewMessage;
 	var idMessage = this.getCDS().getIdObject(message);
 	var controllerCallback = {};
 	var __this = this;
@@ -245,66 +283,66 @@ ConversationController.prototype.sendMessage = function(message, callbackFn)
 		return false;
 	}
 
-	controllerCallback.success = function(data){
+	//for a better user experience, controller.render doesnt wait 
+	//to be called from controllerCallback
+	controller.render(message);
+
+	controllerCallback.success = function(message){
 		__this.getCDS().unsetMessageFailedToSent(idMessage);
+		var message = __this.getCDS().getMessage(idMessage);
+
 		console.log('message sent correctly');
-		if(_.isFunction(callbackFn)) callbackFn(data);
+		controller.render(message);
+		if(_.isFunction(callbackFn)) callbackFn(message);
 	};
 
-	controllerCallback.fail = function(data){
+	controllerCallback.fail = function(message){
 		__this.getCDS().setMessageFailedToSent(idMessage);
+		var message = __this.getCDS().getMessage(idMessage);
+
 		console.error('message failed');
-		if(_.isFunction(callbackFn)) callbackFn(data);
+		controller.render(message);
+		if(_.isFunction(callbackFn)) callbackFn(message);
 	};
 
-	this.getSource().sendMessage(message, controllerCallback);
+	controller.source(message, controllerCallback);
 }
 
 ConversationController.prototype.deleteMessage = function(idMessage, callbackFn)
 {
 	var controllerCallback = {};
+	var controller = this.getControllers().deleteMessage;
 	var __this = this;
 
 	controllerCallback.success = function(data){
 		__this.getCDS().deleteMessage(idMessage);
 		console.log('message removed correctly');
+		controller.render({"id": idMessage});
 		if(_.isFunction(callbackFn)) callbackFn(data);
 	};
 
-	this.getSource().deleteMessage(idMessage, controllerCallback);
-}
-
-ConversationController.prototype.sendImWriting = function(callbackFn)
-{
-	var controllerCallback = {};
-	var __this = this;
-
-	controllerCallback.success = function(data){
-		if(_.isFunction(callbackFn)) callbackFn(data);
-	}
-
-	this.getSource().imWriting(controllerCallback);
+	controller.source(idMessage, controllerCallback);
 }
 
 ConversationController.prototype.setConnectionStatus = function(idMember, statusMember, callbackFn)
 {
 	var controllerCallback = {};
+	var controller = this.getControllers().connectionStatus;
 	var __this = this;
 
 	controllerCallback.success = function(){
-		var member = null;
-
-		if(!__this.getCDS().setMemberProperties(idMember, {status: statusMember})){
+		var member = __this.getCDS().setMemberProperties(idMember, {status: statusMember});		
+		if(!member){
 			console.log('status cant be changed. Error');
 		}
 		else{
-			member = __this.getCDS().getMember(idMember);
+			controller.render(member);
 		}
 		
-		if(_.isFunction(callbackFn)) callbackFn({member: member});
+		if(_.isFunction(callbackFn)) callbackFn(member);
 	}
 
-	this.getSource().setConnectionStatus(idMember, controllerCallback);
+	controller.source(idMember, controllerCallback);
 }
 
 

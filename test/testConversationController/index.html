@@ -1,10 +1,94 @@
 <html>
 	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+		<meta content="text/html; charset=UTF-8" />
+
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/0.8.1/mustache.min.js"></script>
 		<script src="../../src/ConversationDataStore.js"></script>
 		<script src="../../src/ConversationController.js"></script>
 		<script src="testConversationController.js"></script>
 	</head>
 	<body>
+		<div id='chat'>
+			<h3>Members</h3>
+			<div id='conversation'>
+				<div id='members'>
+
+				</div>
+				<hr />
+				<h3>Messages</h3>
+				<div id='chatbox'>
+				</div>
+			</div>
+		</div><!--#chat-->
+
+		<div id='box-textarea'>
+			<form id='formtextarea'>
+				<input type="text" name='message' value="" />
+				<button type="submit">Enviar</button>
+			</form>
+		</div>
+
+		<hr />
+
+		<div id='box-manager-members'>
+			<form id='form-add-members'>
+				<h3>Add a member</h3>
+				idMember: <input type="text" name="id" /> <br />
+				alias: <input type="text" name="alias" />
+				status: <input type="text" name="status" />
+				<button type="submit">Join</button>
+			</form>
+
+			<form id='form-kick-members'>
+				<h3>Kick member</h3>
+				idMember: <input type="text" name="id" /> <br />
+				<button type="submit">Kick</button>
+			</form>
+		</div>
+
+
+
+		<script id='message-template' type="text/template">
+			Alias: {{alias}} | Mensaje: {{mensaje}} | Id: {{id}} |
+			{{#waiting}}⌚{{/waiting}}
+			{{^waiting}} 
+				{{^failedToSent}}&#10003;{{/failedToSent}}
+				{{#failedToSent}}[x]{{/failedToSent}} 
+			{{/waiting}}
+		</script>
+
+		<script id='member-template' type="text/template">
+			Alias: {{alias}} | Status: {{status}} | Id: {{id}}
+		</script>
+		<script id='member-wrapper-template' type="text/template">
+			<div data-member='{{id}}'>
+				{{>member}}
+			</div>
+		</script>
+
+		<script id='conversation-template' type="text/template">
+			<div id='conversation'>
+				<h3>Members</h3>
+				<div id='members'>
+					{{#members}}
+						<div data-member='{{id}}'>
+							{{>member}}
+						</div>
+					{{/members}}
+				</div>
+				<hr />
+				<h3>Messages</h3>
+				<div id='chatbox'>
+					{{#messages}}
+						<div id='message-{{id}}'>
+							{{>message}}
+						</div>
+					{{/messages}}
+				</div>
+			</div>
+		</script>
 	</body>
 </html>

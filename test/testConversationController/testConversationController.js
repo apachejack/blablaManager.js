@@ -3,6 +3,7 @@
         define([
         		"jquery", 
         		"underscore", 
+        		"mustache", 
         		"../../src/ConversationDataStore", 
         		"../../src/ConversationController"
         		], factory);
@@ -10,13 +11,14 @@
         module.exports = factory(
         						require("jquery"), 
         						require("underscore"), 
+        						require("mustache"), 
         						require("../../src/ConversationDataStore"), 
         						require("../../src/ConversationController")
         						);
     } else {
-        root.testConversacionController = factory(root.$, root._, root.ConversationDataStore, root.ConversationController);
+        root.testConversacionController = factory(root.$, root._, root.Mustache, root.ConversationDataStore, root.ConversationController);
     }
-}(this, function ($, _, ConversationDataStore, ConversationController) {
+}(this, function ($, _, Mustache, ConversationDataStore, ConversationController) {
 
 window.messages = [
 {
@@ -61,6 +63,42 @@ window.messages = [
 
 window.oldMessages = [
 {
+	"id": 9, 
+	"idUser": 66, 
+	"mensaje": "viejo mensaje ", 
+	"fecha": "14-11-90"
+}, 
+{
+	"id": 10, 
+	"idUser": 55, 
+	"mensaje": "viejo mensaje!", 
+	"fecha": "14-11-90"
+},
+{
+	"id": 11, 
+	"idUser": 55, 
+	"mensaje": "1viejo mensajes!", 
+	"fecha": "14-11-90"
+},
+{
+	"id": 12, 
+	"idUser": 66, 
+	"mensaje": "viejo mensaje ", 
+	"fecha": "14-11-90"
+}, 
+{
+	"id": 13, 
+	"idUser": 55, 
+	"mensaje": "viejo mensaje!", 
+	"fecha": "14-11-90"
+},
+{
+	"id": 14, 
+	"idUser": 55, 
+	"mensaje": "1viejo mensajes!", 
+	"fecha": "14-11-90"
+},
+{
 	"id": 15, 
 	"idUser": 66, 
 	"mensaje": "viejo mensaje ", 
@@ -104,7 +142,8 @@ window.message = {
 	"id": 1455959595959543, 
 	"idUser": 66, 
 	"mensaje": "MENSAJE ENVIADO POR sentMessage()!", 
-	"fecha": "14-11-90"
+	"fecha": "14-11-90", 
+	"waiting": true
 };
 
 window.members = [
@@ -118,192 +157,255 @@ var params = {
 	idConversation: 10000, 
 
 	onCreateConversation: function(){
-		console.log('Conversacion creada (onCreateConversation)');
-	}, 
-	
+		//console.log('Conversacion creada (onCreateConversation)');
+	},
 	sourceMembers: function(controllerCallback){
 		setTimeout(function(){
 			controllerCallback.success(window.members);
 		}, 100);
 	}, 
-
 	sourceMessages: function(controllerCallback){
 		setTimeout(function(){
 			controllerCallback.success(window.messages);
 		}, 100);
 	}, 
-
 	sourceConversation: function(controllerCallback){
 		setTimeout(function(){
 			controllerCallback.success({messages: window.messages, members: window.members});
 		}, 100);
 	}, 
+	getConversation: {
+		render: function(conversation){
+			var tmplConversation = $("#conversation-template").html();
+			var data = conversation;
+			var partials = {
+				message: $("#message-template").html(),
+				member: $("#member-template").html()
+			}
+			var tmpl = Mustache.render(tmplConversation, data, partials);
+			$("#chat").html(tmpl);
+		}
+	}, 
+	appendNewMessage: {
+		source: function(message, controllerCallback){
+			var successWhileSend = true;
+			setTimeout(function(){
+				message.waiting = false;
 
-	sourceSendMessage: function(message, controllerCallback){
-		/*
-			call controllerCallback.success() function if the message is accepted by your app
-			call controllerCallback.fail() function if the message isnt accepted by your app
-		*/
+				if(successWhileSend){		
+					controllerCallback.success(message);
+				}
+				else{
+					controllerCallback.fail(message);
+				}
+			}, 500);
 
-		var successWhileSend = true;
-
-		setTimeout(function(){
-			var data = {};
-			data.message = message;
-
-			if(successWhileSend){		
-				data.response = "success";	
-				controllerCallback.success(data);
+		}, 
+		render: function(message){
+			var tmplMessage = $("#message-template").html();
+			if(!$("#message-"+message.id).length){
+				var tmpl = Mustache.render("<div id='message-{{id}}'>{{>message}}</div>", message, {message: tmplMessage});
+				$("#chatbox").append(tmpl);
 			}
 			else{
-				data.response = "fail";
-				controllerCallback.fail(data);
+				var tmpl = Mustache.render(tmplMessage, message);
+				$("#message-"+message.id).html(tmpl);
 			}
-
-		}, 100);
+		}
 	}, 
+	deleteMessage: {
+		source: function(idMessage, controllerCallback){
+			var successWhileSend = true;
 
-	sourceDeleteMessage: function(idMessage, controllerCallback){
-		/*
-			call controllerCallback.success() function if the message can be deleted by your app
-		*/
-		var successWhileSend = true;
+			setTimeout(function(){
+				if(successWhileSend){
+					controllerCallback.success({response: 'success'});
+				}
+			}, 100);
 
-		setTimeout(function(){
-			if(successWhileSend){
-				controllerCallback.success({response: 'success'});
-			}
-		}, 100);
+		}, 
+		render: function(data){
+			$("#message-"+data.id).remove();
+		}
+	},
+	kickMember: {
+		source: function(member, controllerCallback){
+			var successWhileSend = true;
 
+			setTimeout(function(){
+				if(successWhileSend){
+					controllerCallback.success();
+				}
+			}, 100);
+
+		}, 
+		render: function(member){
+			$("[data-member='"+member.id+"']").fadeOut(1000, function(){
+				$(this).remove();
+			});
+		}
 	}, 
+	joinMember:{
+		source: function(member, controllerCallback){
+			/*
+				call controllerCallback.success() function if the member can join
+			*/
+			var successWhileSend = true;
+			setTimeout(function(){
+				if(successWhileSend){
+					controllerCallback.success(member);
+				}
+			}, 100);
 
-	sourceKickMember: function(member, controllerCallback){
-		/*
-			call controllerCallback.success() function if the member can be kicked by your app
-		*/
-		var successWhileSend = true;
-
-		setTimeout(function(){
-			if(successWhileSend){
-				controllerCallback.success({member: member, response: 'success'});
-			}
-		}, 100);
-
+		}, 
+		render: function(member){
+			var tmplWrapper = $("#member-wrapper-template").html();
+			var tmplMember = $("#member-template").html();
+			var tmpl = Mustache.render(tmplWrapper, member, {member: tmplMember});
+			$("#members").append(tmpl);
+		}
 	}, 
-
-	sourceJoinMember: function(member, controllerCallback){
-		/*
-			call controllerCallback.success() function if the member can join
-		*/
-		var successWhileSend = true;
-		setTimeout(function(){
-			if(successWhileSend){
-				controllerCallback.success({member: member, response: 'success'});
-			}
-		}, 100);
-
+	setConnectionStatus: {
+		source: function(idMember, controllerCallback){
+			var successWhileSend = true;
+			setTimeout(function(){
+				if(successWhileSend){
+					controllerCallback.success();
+				}
+				
+			}, 100);
+		}, 
+		render: function(member){
+			var tmplMember = $("#member-template").html();
+			$("[data-member='"+member.id+"']")
+				.html(Mustache.render(tmplMember, member));
+		}
 	}, 
+	previousUnloadedMessages: {
+		source: function(searchData, controllerCallback){
+			var successWhileSend = true;
+			var requested_messages = searchData.requested;
+			var messages_since = searchData.since;
 
-	sourceImWriting: function(controllerCallback){
-		var successWhileSend = true;
+			setTimeout(function(){
+				if(successWhileSend){
+					var oldMessages = _.last(window.oldMessages, requested_messages);
+				}
+				controllerCallback.success(oldMessages);
+			}, 100);
+		}, 
+		render: function (data) {
+			var messages = {messages: data};
+			console.log('rendering previousUnloadedMessages');
+			//console.log(messages);
 
-		setTimeout(function(){
-			if(successWhileSend){
-				controllerCallback.success({});
-			}
-		}, 100);
-
-	}, 
-
-	setConnectionStatus: function(idMember, controllerCallback){
-
-		var successWhileSend = true;
-
-		setTimeout(function(){
-
-			if(successWhileSend){
-				controllerCallback.success();
-			}
-			
-		}, 100);
-
-	}, 
-
-	sourcePreviousUnloadedMessages: function(searchData, controllerCallback){
-		/*
-			
-		*/
-
-		var successWhileSend = true;
-
-		var requested_messages = searchData.requested;
-		var messages_since = searchData.since;
-
-		setTimeout(function(){
-
-			if(successWhileSend){
-				var oldMessages = window.oldMessages;
-			}
-
-			controllerCallback.success(oldMessages);
-			
-		}, 100);
+			//console.log('now show all messages after rendering previousUnloadedMessages');
+			//console.log(cc.getCDS().getMessages());
+			var tmplMessage = $("#message-template").html();
+			var tmpl = Mustache.render("{{#messages}}<div id='message-{{id}}'>{{>message}}</div>{{/messages}}", messages, {message: tmplMessage});
+			$("#chatbox").prepend(tmpl);			
+		}
 	}
-
 };
 
 
-cc = new ConversationController(ConversationDataStore, params);
+function listeners(){
+	$("#formtextarea").on("submit", function(e){
+		e.preventDefault();
+		var $fieldMessage = $(this).find("[name='message']");
+		var textMessage = $fieldMessage.val();
+		var message = {
+			mensaje: textMessage, 
+			id: _.now(), 
+			idUser: 55, 
+			fecha: _.now(), 
+			waiting: true,
+		}
 
-console.log('id conversacion: '+cc.getIdConversation());
+		cc.appendNewMessage(message);
+		$fieldMessage.val("");
+	});
 
-cc.fetchDataConversation(function(conversation){
+	$("#form-add-members").on("submit", function(e){
+		e.preventDefault();
+		var member = {
+			id: $(this).find("[name='id']").val(), 
+			alias: $(this).find("[name='alias']").val(), 
+			status: $(this).find("[name='status']").val()
+		};
+		cc.joinMember(member);
+	});
 
-	console.log(cc.getCDS().getMessages());
+	$("#form-kick-members").on("submit", function(e){
+		e.preventDefault();
+		var idMember = $(this).find("[name='id']").val();
+		cc.kickMember(idMember);
+	});
 
-	cc.sendMessage(message, function(data){
-		console.log(data.response);
-		console.log(cc.getCDS().getMessages());
 
-		cc.deleteMessage(1455, function(data){
-			console.log('deleting a message using the api');
+	cc = new ConversationController(ConversationDataStore, params);
+
+	//console.log('id conversacion: '+cc.getIdConversation());
+
+	cc.getConversation(function(conversation){
+
+		//console.log(cc.getCDS().getMessages());
+
+		cc.appendNewMessage(message, function(message){
+			var idMessageSent = message.id;
+			//console.log(data.response);
+			//console.log(cc.getCDS().getMessages());
+
+			/*
+			cc.deleteMessage(idMessageSent, function(data){
+				//console.log('deleting a message using the api');
+			});
+			*/
+
 		});
+
+
+		cc.kickMember(66, function(member){
+			
+		});
+
+
+		cc.joinMember({id: 324290314823, alias: 'joinedMember'}, function(member){
+			
+		});
+
+		cc.joinMember({id: 324290314823333, alias: 'otherjoinedMember', status: 'offline'}, function(member){
+			//cc.kickMember(member.id);
+			cc.setConnectionStatus(member.id, "online", function(member){
+				setTimeout(function(){
+					cc.setConnectionStatus(member.id, "afk");
+				}, 3000);
+			});
+		});
+
+		cc.setConnectionStatus(28, 'afk', function(data){
+			//console.log(data);
+		});
+
+		cc.getPreviousUnloadedMessages(5, function(data){
+			//console.log(data.messages);
+			//console.log('getting old messages');
+		});
+
+
+		//console.log('getting message');
+		//console.log(cc.getCDS().getMessage(1455));
+
+
 	});
 
+	setTimeout(function(){
+		cc.getConversation(function(conversation){
+			alert('imprimida de nuevo');
+		});
+	}, 10000);
+}
 
-	cc.kickMember(66, function(data){
-		
-	});
-
-
-	cc.joinMember({id: 324290314823, alias: 'joinedMember'}, function(data){
-		
-	});
-
-
-	cc.sendImWriting(function(data){
-		console.log('Sent that im writing');
-	});
-
-	cc.setConnectionStatus(28, 'afk', function(data){
-		console.log(data);
-	});
-
-	cc.getPreviousUnloadedMessages(10, function(data){
-		console.log(data.messages);
-		console.log('getting old messages');
-	});
-
-
-	console.log('getting message');
-	console.log(cc.getCDS().getMessage(1455));
-
-
-});
-
-
-
-
-
+$(document).ready(listeners);
 
 }));

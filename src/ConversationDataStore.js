@@ -52,7 +52,7 @@ ConversationDS.prototype.getTotalMessages = function(){
 }
 
 ConversationDS.prototype.getMessage = function(idMessage){
-	var message = _.findWhere(this.getMessages(), {id: idMessage});
+	var message = _.findWhere(this.getMessages(), {id: parseInt(idMessage)});
 	return message;
 }
 
@@ -151,7 +151,7 @@ ConversationDS.prototype.getMembers = function(){
 }
 
 ConversationDS.prototype.getMember = function(idMember){
-	var member = _.findWhere(this.getMembers(), {id: idMember});
+	var member = _.findWhere(this.getMembers(), {id: parseInt(idMember)});
 	return member;
 }
 
@@ -163,12 +163,19 @@ ConversationDS.prototype.addMembers = function(members){
 
 	for (var i = 0; i < members.length; i++){ 
 		if(!this._pushMember(members[i])){
-
+			break;
+			return false;
 		}
 	}
+
+	return true;
 }
 
 ConversationDS.prototype.setMemberProperties = function(idMember, properties){
+	/*
+	returns a member object with the new properties
+	*/
+
 	var memberObject;
 	var index;
 
@@ -184,7 +191,9 @@ ConversationDS.prototype.setMemberProperties = function(idMember, properties){
 	if(index != null){
 		memberObject = members[index];
 		_.extend(memberObject, properties);
-		return this._replaceListItemWithObject(this._members, index, memberObject);
+		if(this._replaceListItemWithObject(this._members, index, memberObject)){
+			return memberObject;
+		}
 	}
 	else{
 		alert('doesnt exists a member with that idMember');
@@ -220,6 +229,9 @@ ConversationDS.prototype._replaceListItemWithObject = function(array, index, obj
 }
 
 ConversationDS.prototype.setMessageProperties = function(idMessage, properties){
+	/*
+	returns a message object with the new properties
+	*/
 	var messageObject;
 	var index;
 	var messages;
@@ -235,7 +247,9 @@ ConversationDS.prototype.setMessageProperties = function(idMessage, properties){
 	if(index != null){
 		messageObject = messages[index];
 		_.extend(messageObject, properties);
-		return this._replaceListItemWithObject(this._messages, index, messageObject);
+		if(this._replaceListItemWithObject(this._messages, index, messageObject)){
+			return messageObject;
+		}
 	}
 	else{
 		alert('doesnt exists a message with that id');
@@ -347,6 +361,15 @@ ConversationDS.prototype.getSavedConversation = function(){
 		"messages": this.getMessages(), 
 		"members": this.getMembers()
 	}
+}
+
+ConversationDS.prototype.existsSavedConversation = function(){
+	var savedConversation = this.getSavedConversation();
+	if(!savedConversation.messages.length && !savedConversation.members.length){
+		return false;
+	}
+
+	return savedConversation;
 }
 
 return ConversationDS;
