@@ -5,7 +5,7 @@
         		"underscore", 
         		"mustache", 
         		"../../src/ConversationDataStore", 
-        		"../../src/ConversationController"
+        		"../../src/BlablaManager"
         		], factory);
     } else if (typeof exports === "object") {
         module.exports = factory(
@@ -13,12 +13,12 @@
         						require("underscore"), 
         						require("mustache"), 
         						require("../../src/ConversationDataStore"), 
-        						require("../../src/ConversationController")
+        						require("../../src/BlablaManager")
         						);
     } else {
-        root.testConversacionController = factory(root.$, root._, root.Mustache, root.ConversationDataStore, root.ConversationController);
+        root.testConversacionController = factory(root.$, root._, root.Mustache, root.ConversationDataStore, root.BlablaManager);
     }
-}(this, function ($, _, Mustache, ConversationDataStore, ConversationController) {
+}(this, function ($, _, Mustache, ConversationDataStore, BlablaManager) {
 
 window.messages = [
 {
@@ -302,7 +302,7 @@ var params = {
 			//console.log(messages);
 
 			//console.log('now show all messages after rendering previousUnloadedMessages');
-			//console.log(cc.getCDS().getMessages());
+			//console.log(blabla.getCDS().getMessages());
 			var tmplMessage = $("#message-template").html();
 			var tmpl = Mustache.render("{{#messages}}<div id='message-{{id}}'>{{>message}}</div>{{/messages}}", messages, {message: tmplMessage});
 			$("#chatbox").prepend(tmpl);			
@@ -324,7 +324,7 @@ function listeners(){
 			waiting: true,
 		}
 
-		cc.appendNewMessage(message);
+		blabla.appendNewMessage(message);
 		$fieldMessage.val("");
 	});
 
@@ -335,31 +335,31 @@ function listeners(){
 			alias: $(this).find("[name='alias']").val(), 
 			status: $(this).find("[name='status']").val()
 		};
-		cc.joinMember(member);
+		blabla.joinMember(member);
 	});
 
 	$("#form-kick-members").on("submit", function(e){
 		e.preventDefault();
 		var idMember = $(this).find("[name='id']").val();
-		cc.kickMember(idMember);
+		blabla.kickMember(idMember);
 	});
 
 
-	cc = new ConversationController(ConversationDataStore, params);
+	blabla = new BlablaManager(ConversationDataStore, params);
 
-	//console.log('id conversacion: '+cc.getIdConversation());
+	//console.log('id conversacion: '+blabla.getIdConversation());
 
-	cc.getConversation(function(conversation){
+	blabla.getConversation(function(conversation){
 
-		//console.log(cc.getCDS().getMessages());
+		//console.log(blabla.getCDS().getMessages());
 
-		cc.appendNewMessage(message, function(message){
+		blabla.appendNewMessage(message, function(message){
 			var idMessageSent = message.id;
 			//console.log(data.response);
-			//console.log(cc.getCDS().getMessages());
+			//console.log(blabla.getCDS().getMessages());
 
 			/*
-			cc.deleteMessage(idMessageSent, function(data){
+			blabla.deleteMessage(idMessageSent, function(data){
 				//console.log('deleting a message using the api');
 			});
 			*/
@@ -367,39 +367,39 @@ function listeners(){
 		});
 
 
-		cc.kickMember(66, function(member){
+		blabla.kickMember(66, function(member){
 			
 		});
 
 
-		cc.joinMember({id: 324290314823, alias: 'joinedMember'}, function(member){
+		blabla.joinMember({id: 324290314823, alias: 'joinedMember'}, function(member){
 			
 		});
 
-		cc.joinMember({id: 324290314823333, alias: 'otherjoinedMember', status: 'offline'}, function(member){
-			//cc.kickMember(member.id);
-			cc.setConnectionStatus(member.id, "online", function(member){
+		blabla.joinMember({id: 324290314823333, alias: 'otherjoinedMember', status: 'offline'}, function(member){
+			//blabla.kickMember(member.id);
+			blabla.setConnectionStatus(member.id, "online", function(member){
 				setTimeout(function(){
-					cc.setConnectionStatus(member.id, "afk");
+					blabla.setConnectionStatus(member.id, "afk");
 				}, 3000);
 			});
 		});
 
-		cc.setConnectionStatus(28, 'afk', function(data){
+		blabla.setConnectionStatus(28, 'afk', function(data){
 			//console.log(data);
 		});
 
-		cc.getPreviousUnloadedMessages(5, function(messages){
+		blabla.getPreviousUnloadedMessages(5, function(messages){
 			//console.log(messages);
 			//console.log('getting old messages');
 		});
 
 
 		//console.log('getting message');
-		//console.log(cc.getCDS().getMessage(1455));
+		//console.log(blabla.getCDS().getMessage(1455));
 
 		/*
-		cc.getConversation(function(conversation){
+		blabla.getConversation(function(conversation){
 			alert('imprimida de nuevo');
 		});
 		*/
