@@ -6,7 +6,7 @@
     "José Carlos Gómez <heypixelweb@gmail.com>"
   ],
   "description": "Simple and intuitive API for managing javascript chat conversations. Highly configurable.",
-  "main": "src/BlablaManager.js",
+  "main": ["src/BlablaManager.js", "src/ConversationDataStore.js"], 
   "moduleType": [
     "amd",
     "globals"
@@ -17,7 +17,9 @@
     "javascript",
     "js",
     "blabla",
-    "blablamanager"
+    "blablamanager", 
+    "chat", 
+    "conversation"
   ],
   "license": "GNU GENERAL PUBLIC LICENSE v2",
   "ignore": [

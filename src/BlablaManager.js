@@ -13,69 +13,68 @@ var BlablaManager = function(ConversationDataStore, params){
 	this._controllers = {};
 	this._memberPropertiesToMixWithMessage = [];
 
-	this.getControllers = function(){
-		return this._controllers;
+	window.debugBlablaManager = function(msg){
+		if(window.DEBUG_BLABLAMANAGER) console.log(msg);
 	}
 
 	this.setCDS(ConversationDataStore);
+	this.setIdConversation(params.idConversation);
+	this.setMemberPropertiesToMixWithMessage(params.memberPropertiesToMixWithMessage);
 
-	if(params.idConversation != null){
-		this.setIdConversation(params.idConversation);
-	}
-
-	if(params.memberPropertiesToMixWithMessage != null){
-		this.setMemberPropertiesToMixWithMessage(params.memberPropertiesToMixWithMessage);
-	}
-
-	if(_.isFunction(params.onCreateConversation)){
-		this.getControllers().onCreateConversation = params.onCreateConversation;
-	}
-
-	if(_.isFunction(params.sourceMembers)){
-		this.getControllers().members = params.sourceMembers;
-	}
-
-	if(_.isFunction(params.sourceMessages)){
-		this.getControllers().messages = params.sourceMessages;
-	}
-
-	if(_.isFunction(params.sourceConversation)){
-		this.getControllers().conversation = params.sourceConversation;
-	}
+	this._setBasicController("onCreateConversation", params.onCreateConversation);
+	this._setBasicController("members", params.sourceMembers);
+	this._setBasicController("messages", params.sourceMessages);
+	this._setBasicController("conversation", params.sourceConversation);
+	this._setSourceRenderController("sendNewMessage", params.sendNewMessage);
+	this._setSourceRenderController("deleteMessage", params.deleteMessage);
+	this._setSourceRenderController("kickMember", params.kickMember);
+	this._setSourceRenderController("joinMember", params.joinMember);
+	this._setSourceRenderController("setConnectionStatus", params.setConnectionStatus);
+	this._setSourceRenderController("previousUnloadedMessages", params.previousUnloadedMessages);
+	this._setSourceRenderController("listenNewMessages", params.listenNewMessages);
+	this._setBasicController("stopListenNewMessages", params.stopListenNewMessages);
 
 	if(_.isObject(params.getConversation)){
 		this.getControllers().getConversation = params.getConversation;
-	}
-
-	if(_.isObject(params.appendNewMessage)){
-		this.getControllers().appendNewMessage = params.appendNewMessage;
-	}
-
-	if(_.isObject(params.deleteMessage)){
-		this.getControllers().deleteMessage = params.deleteMessage;
-	}
-
-	if(_.isObject(params.kickMember)){
-		this.getControllers().kickMember = params.kickMember;
-	}
-
-	if(_.isObject(params.joinMember)){
-		this.getControllers().joinMember = params.joinMember;
-	}
-
-	if(_.isObject(params.setConnectionStatus)){
-		this.getControllers().connectionStatus = params.setConnectionStatus;
-	}
-
-	if(_.isObject(params.previousUnloadedMessages)){
-		this.getControllers().previousUnloadedMessages = params.previousUnloadedMessages;
 	}
 
 	this.onCreateConversation();
 
 }
 
+BlablaManager.prototype.getControllers = function(){
+	return this._controllers;
+}
 
+BlablaManager.prototype._setSourceRenderController = function(name_controller, controller){
+
+	switch(false){
+		case _.isObject(controller): 
+		break;
+
+		case _.has(controller, "source") && _.isFunction(controller.source): 
+		break;
+
+		case _.has(controller, "render") && _.isFunction(controller.render): 
+		break;
+
+		default: 
+			this.getControllers()[""+name_controller+""] = controller;
+		break;
+	}
+}
+
+BlablaManager.prototype._setBasicController = function(name_controller, controller){
+
+	switch(false){
+		case _.isFunction(controller): 
+		break;
+
+		default: 
+			this.getControllers()[""+name_controller+""] = controller;
+		break;
+	}
+}
 
 BlablaManager.prototype.onCreateConversation = function()
 {
@@ -84,7 +83,7 @@ BlablaManager.prototype.onCreateConversation = function()
 		return false;
 	}
 
-	onCreateConversation();
+	onCreateConversation(this);
 }
 
 
@@ -100,7 +99,7 @@ BlablaManager.prototype.getCDS = function()
 
 BlablaManager.prototype.setIdConversation = function(idConversation)
 {
-	this.getCDS().setIdConversation(idConversation);
+	if(idConversation != null) this.getCDS().setIdConversation(idConversation);
 }
 
 BlablaManager.prototype.getIdConversation = function()
@@ -111,7 +110,7 @@ BlablaManager.prototype.getIdConversation = function()
 BlablaManager.prototype.fetchDataConversation = function(callbackFn)
 {
 	if(!_.isFunction(this.getControllers().conversation)){
-		console.error('Must define params.sourceConversation before use fetchDataConversation');
+		window.debugBlablaManager('Must define params.sourceConversation before use fetchDataConversation');
 		return false;
 	}
 
@@ -120,7 +119,7 @@ BlablaManager.prototype.fetchDataConversation = function(callbackFn)
 
 	controllerCallback.success = function(data){
 		if(!_.has(data, "members") || !_.has(data, "messages")){
-			console.error('data provided by controllerCallback.success needs members and messages');
+			window.debugBlablaManager('data provided by controllerCallback.success needs members and messages');
 			return false;
 		}
 
@@ -137,7 +136,7 @@ BlablaManager.prototype.fetchDataConversation = function(callbackFn)
 BlablaManager.prototype.fetchDataMembers = function(callbackFn)
 {
 	if(!_.isFunction(this.getControllers().members)){
-		console.error('Must define params.sourceMembers before use fetchDataMembers');
+		window.debugBlablaManager('Must define params.sourceMembers before use fetchDataMembers');
 		return false;
 	}
 
@@ -148,7 +147,7 @@ BlablaManager.prototype.fetchDataMembers = function(callbackFn)
 		__this.getCDS().resetMembers();
 
 		if(!__this.getCDS().addMembers(members)){
-			console.log('cant add members');
+			window.debugBlablaManager('cant add members');
 			var members = [];
 		}
 		
@@ -161,7 +160,7 @@ BlablaManager.prototype.fetchDataMembers = function(callbackFn)
 BlablaManager.prototype.fetchDataMessages = function(callbackFn)
 {
 	if(!_.isFunction(this.getControllers().messages)){
-		console.error('Must define params.sourceMessages before use fetchDataMessages');
+		window.debugBlablaManager('Must define params.sourceMessages before use fetchDataMessages');
 		return false;
 	}
 
@@ -172,7 +171,7 @@ BlablaManager.prototype.fetchDataMessages = function(callbackFn)
 		__this.getCDS().resetMessages();
 
 		if(!__this.getCDS().addMessages(messages)){
-			console.log('cant fetch data messages');
+			window.debugBlablaManager('cant fetch data messages');
 			var messages = [];
 		}
 
@@ -184,7 +183,7 @@ BlablaManager.prototype.fetchDataMessages = function(callbackFn)
 
 BlablaManager.prototype.getConversation = function(callbackFn){
 	if(!_.isObject(this.getControllers().getConversation)){
-		console.error('Must define params.getConversation before use getConversation');
+		window.debugBlablaManager('Must define params.getConversation before use getConversation');
 		return false;
 	}
 
@@ -194,14 +193,14 @@ BlablaManager.prototype.getConversation = function(callbackFn){
 	var existsSavedConversation = this.getCDS().existsSavedConversation();
 
 	if(existsSavedConversation){
-		console.log('Accesing conversation from dataStore');
+		window.debugBlablaManager('Accesing conversation from dataStore');
 		existsSavedConversation.messages = this.extendMessages(existsSavedConversation.messages);
 		controller.render(existsSavedConversation);
 		if(_.isFunction(callbackFn)) callbackFn(existsSavedConversation);
 	}
 	else{
 		var __this = this;
-		console.log('Accesing conversation from source');
+		window.debugBlablaManager('Accesing conversation from source');
 		this.fetchDataConversation(function(conversation){
 			conversation.messages = __this.extendMessages(conversation.messages);
 			controller.render(conversation);
@@ -215,7 +214,7 @@ BlablaManager.prototype.getConversation = function(callbackFn){
 BlablaManager.prototype.getPreviousUnloadedMessages = function(requested_messages, callbackFn)
 {
 	if(!_.isObject(this.getControllers().previousUnloadedMessages)){
-		console.error('Must define params.previousUnloadedMessages before use getPreviousUnloadedMessages');
+		window.debugBlablaManager('Must define params.previousUnloadedMessages before use getPreviousUnloadedMessages');
 		return false;
 	}
 
@@ -231,7 +230,7 @@ BlablaManager.prototype.getPreviousUnloadedMessages = function(requested_message
 
 	controllerCallback.success = function(messages){
 		if(!__this.getCDS().prependMessages(messages)){
-			console.log('old messages cant be added');
+			window.debugBlablaManager('old messages cant be added');
 			var messages = [];
 		}
 
@@ -249,15 +248,15 @@ BlablaManager.prototype.kickMember = function(idMember, callbackFn)
 {
 	var controller = this.getControllers().kickMember;
 	var member = this.getCDS().getMember(idMember);
-	console.log('kicking member sdfsfds')
-	console.log(member)
+	window.debugBlablaManager('kicking member sdfsfds')
+	window.debugBlablaManager(member)
 
 	var controllerCallback = {};
 	var __this = this;
 
 	controllerCallback.success = function(){		
 		__this.getCDS().deleteMember(idMember);
-		console.log('member kicked correctly');
+		window.debugBlablaManager('member kicked correctly');
 		controller.render(member);
 		if(_.isFunction(callbackFn)) callbackFn(member);
 	};
@@ -273,7 +272,7 @@ BlablaManager.prototype.joinMember = function(member, callbackFn)
 
 	controllerCallback.success = function(member){
 		if(__this.getCDS().addMembers(member)){
-			console.log('member joined correctly');
+			window.debugBlablaManager('member joined correctly');
 			controller.render(member);
 			if(_.isFunction(callbackFn)) callbackFn(member);
 		}
@@ -282,15 +281,15 @@ BlablaManager.prototype.joinMember = function(member, callbackFn)
 	controller.source(member, controllerCallback);
 }
 
-BlablaManager.prototype.appendNewMessage = function(message, callbackFn)
+BlablaManager.prototype.sendNewMessage = function(message, callbackFn)
 {
-	var controller = this.getControllers().appendNewMessage;
+	var controller = this.getControllers().sendNewMessage;
 	var idMessage = this.getCDS().getIdObject(message);
 	var controllerCallback = {};
 	var __this = this;
 
 	if(!this.getCDS().addMessages(message)){
-		console.error('Cant add this message');
+		window.debugBlablaManager('Cant add this message');
 		return false;
 	}
 
@@ -304,7 +303,7 @@ BlablaManager.prototype.appendNewMessage = function(message, callbackFn)
 		var message = __this.getCDS().getMessage(idMessage);
 		var extendedMessage = __this.extendMessages(message);
 
-		console.log('message sent correctly');
+		window.debugBlablaManager('message sent correctly');
 		controller.render(extendedMessage);
 		if(_.isFunction(callbackFn)) callbackFn(extendedMessage);
 	};
@@ -314,12 +313,44 @@ BlablaManager.prototype.appendNewMessage = function(message, callbackFn)
 		var message = __this.getCDS().getMessage(idMessage);
 		var extendedMessage = __this.extendMessages(message);
 
-		console.error('message failed');
+		window.debugBlablaManager('message failed');
 		controller.render(extendedMessage);
 		if(_.isFunction(callbackFn)) callbackFn(extendedMessage);
 	};
 
 	controller.source(message, controllerCallback);
+}
+
+
+BlablaManager.prototype.listenNewMessages = function(callbackFn)
+{
+	var controller = this.getControllers().listenNewMessages;
+	var controllerCallback = {};
+	var __this = this;
+
+	window.debugBlablaManager('Started listening new messages');
+
+	controllerCallback.success = function(messages){
+		if(!__this.getCDS().addMessages(messages)){
+			window.debugBlablaManager('Cant add this message');
+			return false;
+		}
+
+		var extendedMessages = __this.extendMessages(messages);
+		window.debugBlablaManager('message received correctly');
+		controller.render(extendedMessages);
+		if(_.isFunction(callbackFn)) callbackFn(extendedMessages);
+	};
+
+	controller.source(controllerCallback);
+}
+
+BlablaManager.prototype.stopListenNewMessages = function(callbackFn)
+{
+	var controller = this.getControllers().stopListenNewMessages;
+	controller();
+	window.debugBlablaManager('Stopped listening new messages');
+	if(_.isFunction(callbackFn)) callbackFn();
 }
 
 BlablaManager.prototype.deleteMessage = function(idMessage, callbackFn)
@@ -330,7 +361,7 @@ BlablaManager.prototype.deleteMessage = function(idMessage, callbackFn)
 
 	controllerCallback.success = function(data){
 		__this.getCDS().deleteMessage(idMessage);
-		console.log('message removed correctly');
+		window.debugBlablaManager('message removed correctly');
 		controller.render({"id": idMessage});
 		if(_.isFunction(callbackFn)) callbackFn(data);
 	};
@@ -341,13 +372,13 @@ BlablaManager.prototype.deleteMessage = function(idMessage, callbackFn)
 BlablaManager.prototype.setConnectionStatus = function(idMember, statusMember, callbackFn)
 {
 	var controllerCallback = {};
-	var controller = this.getControllers().connectionStatus;
+	var controller = this.getControllers().setConnectionStatus;
 	var __this = this;
 
 	controllerCallback.success = function(){
 		var member = __this.getCDS().setMemberProperties(idMember, {status: statusMember});		
 		if(!member){
-			console.log('status cant be changed. Error');
+			window.debugBlablaManager('status cant be changed. Error');
 		}
 		else{
 			controller.render(member);
@@ -359,12 +390,15 @@ BlablaManager.prototype.setConnectionStatus = function(idMember, statusMember, c
 	controller.source(idMember, controllerCallback);
 }
 
-BlablaManager.prototype.extendMessages = function(messages){
+BlablaManager.prototype.extendMessages = function(messages)
+{
 	return this._mixMessagesWithMemberProperties(messages);
 }
 
-BlablaManager.prototype.setMemberPropertiesToMixWithMessage = function(properties){
-	if(_.isEmpty(properties)){
+BlablaManager.prototype.setMemberPropertiesToMixWithMessage = function(properties)
+{
+
+	if(_.isNull(properties) || _.isEmpty(properties)){
 		this._memberPropertiesToMixWithMessage = [];
 		return false;
 	}
@@ -379,11 +413,13 @@ BlablaManager.prototype.setMemberPropertiesToMixWithMessage = function(propertie
 	}
 }
 
-BlablaManager.prototype.getMemberPropertiesToMixWithMessage = function(){
+BlablaManager.prototype.getMemberPropertiesToMixWithMessage = function()
+{
 	return this._memberPropertiesToMixWithMessage;
 }
 
-BlablaManager.prototype._getMessageMixedWithMemberProperty = function(message, member, property){
+BlablaManager.prototype._getMessageMixedWithMemberProperty = function(message, member, property)
+{
 	if(member != undefined){
 		message[property] = member[property];
 	}

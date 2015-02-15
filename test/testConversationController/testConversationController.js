@@ -20,6 +20,42 @@
     }
 }(this, function ($, _, Mustache, ConversationDataStore, BlablaManager) {
 
+window.DEBUG_BLABLAMANAGER = true;
+
+window.generateNewMessage = function(){
+	var justone = true;
+
+	if(justone){
+		return {
+			"id": _.now(), 
+			"idUser": 66, 
+			"mensaje": "soy muy nuevo nuevo nuevo!", 
+			"fecha": "14-11-90"
+		}
+	}
+	else{
+		return [
+			{
+				"id": _.now(), 
+				"idUser": 66, 
+				"mensaje": "soy muy nuevo nuevo nuevo!", 
+				"fecha": "14-11-90"
+			}, 
+			{
+				"id": _.now()+30, 
+				"idUser": 66, 
+				"mensaje": "soy muy nuevo nuevo nuevo!", 
+				"fecha": "14-11-90"
+			}
+		];
+	}
+};
+
+setInterval(function(){
+	$(document).trigger("message-received.chat", window.generateNewMessage());
+}, 6000);
+
+
 window.messages = [
 {
 	"id": 1455, 
@@ -158,23 +194,23 @@ var params = {
 
 	memberPropertiesToMixWithMessage: ["alias", "img_perfil"], 
 
-	onCreateConversation: function(){
-		//console.log('Conversacion creada (onCreateConversation)');
+	onCreateConversation: function(BlablaManager){
+		BlablaManager.listenNewMessages();
 	},
 	sourceMembers: function(controllerCallback){
 		setTimeout(function(){
 			controllerCallback.success(window.members);
-		}, 100);
+		}, 600);
 	}, 
 	sourceMessages: function(controllerCallback){
 		setTimeout(function(){
 			controllerCallback.success(window.messages);
-		}, 100);
+		}, 600);
 	}, 
 	sourceConversation: function(controllerCallback){
 		setTimeout(function(){
 			controllerCallback.success({messages: window.messages, members: window.members});
-		}, 100);
+		}, 600);
 	}, 
 	getConversation: {
 		render: function(conversation){
@@ -188,7 +224,7 @@ var params = {
 			$("#chat").html(tmpl);
 		}
 	}, 
-	appendNewMessage: {
+	sendNewMessage: {
 		source: function(message, controllerCallback){
 			var successWhileSend = true;
 			setTimeout(function(){
@@ -200,7 +236,7 @@ var params = {
 				else{
 					controllerCallback.fail(message);
 				}
-			}, 500);
+			}, 600);
 
 		}, 
 		render: function(message){
@@ -215,6 +251,41 @@ var params = {
 			}
 		}
 	}, 
+
+	listenNewMessages: {
+		source: function(controllerCallback){
+			/*
+			var listening = setInterval(function(){
+				if(window.generateNewMessage()){
+					controllerCallback.success(window.generateNewMessage());
+				}
+			}, 7000);
+			*/
+
+			var messageReceived = function(event, datos){
+				controllerCallback.success(datos);
+			};
+
+			$(document).off("message-received.chat", messageReceived);
+			$(document).on("message-received.chat", messageReceived);
+		}, 
+		render: function(message){
+			var tmplMessage = $("#message-template").html();
+			if(!$("#message-"+message.id).length){
+				var tmpl = Mustache.render("<div id='message-{{id}}'>{{>message}}</div>", message, {message: tmplMessage});
+				$("#chatbox").append(tmpl);
+			}
+			else{
+				var tmpl = Mustache.render(tmplMessage, message);
+				$("#message-"+message.id).html(tmpl);
+			}
+		}
+	}, 
+
+	stopListenNewMessages: function(){
+		$(document).off("message-received.chat");
+	}, 
+
 	deleteMessage: {
 		source: function(idMessage, controllerCallback){
 			var successWhileSend = true;
@@ -223,7 +294,7 @@ var params = {
 				if(successWhileSend){
 					controllerCallback.success({response: 'success'});
 				}
-			}, 100);
+			}, 600);
 
 		}, 
 		render: function(data){
@@ -238,7 +309,7 @@ var params = {
 				if(successWhileSend){
 					controllerCallback.success();
 				}
-			}, 100);
+			}, 600);
 
 		}, 
 		render: function(member){
@@ -257,7 +328,7 @@ var params = {
 				if(successWhileSend){
 					controllerCallback.success(member);
 				}
-			}, 100);
+			}, 600);
 
 		}, 
 		render: function(member){
@@ -275,7 +346,7 @@ var params = {
 					controllerCallback.success();
 				}
 				
-			}, 100);
+			}, 600);
 		}, 
 		render: function(member){
 			var tmplMember = $("#member-template").html();
@@ -294,7 +365,7 @@ var params = {
 					var oldMessages = _.last(window.oldMessages, requested_messages);
 				}
 				controllerCallback.success(oldMessages);
-			}, 100);
+			}, 600);
 		}, 
 		render: function (data) {
 			var messages = {messages: data};
@@ -324,7 +395,7 @@ function listeners(){
 			waiting: true,
 		}
 
-		blabla.appendNewMessage(message);
+		blabla.sendNewMessage(message);
 		$fieldMessage.val("");
 	});
 
@@ -353,7 +424,9 @@ function listeners(){
 
 		//console.log(blabla.getCDS().getMessages());
 
-		blabla.appendNewMessage(message, function(message){
+		//blabla.stopListenNewMessages();
+
+		blabla.sendNewMessage(message, function(message){
 			var idMessageSent = message.id;
 			//console.log(data.response);
 			//console.log(blabla.getCDS().getMessages());
