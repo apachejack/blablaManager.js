@@ -156,6 +156,8 @@ window.members = [
 var params = {
 	idConversation: 10000, 
 
+	memberPropertiesToMixWithMessage: ["alias", "img_perfil"], 
+
 	onCreateConversation: function(){
 		//console.log('Conversacion creada (onCreateConversation)');
 	},
@@ -317,7 +319,7 @@ function listeners(){
 		var message = {
 			mensaje: textMessage, 
 			id: _.now(), 
-			idUser: 55, 
+			idUser: 28, 
 			fecha: _.now(), 
 			waiting: true,
 		}
@@ -387,8 +389,8 @@ function listeners(){
 			//console.log(data);
 		});
 
-		cc.getPreviousUnloadedMessages(5, function(data){
-			//console.log(data.messages);
+		cc.getPreviousUnloadedMessages(5, function(messages){
+			//console.log(messages);
 			//console.log('getting old messages');
 		});
 
@@ -396,14 +398,16 @@ function listeners(){
 		//console.log('getting message');
 		//console.log(cc.getCDS().getMessage(1455));
 
-
-	});
-
-	setTimeout(function(){
+		/*
 		cc.getConversation(function(conversation){
 			alert('imprimida de nuevo');
 		});
-	}, 10000);
+		*/
+
+
+	});
+
+
 }
 
 $(document).ready(listeners);

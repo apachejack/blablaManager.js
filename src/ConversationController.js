@@ -11,6 +11,7 @@
 var ConversationController = function(ConversationDataStore, params){
 	this._ConversationDataStore = null;
 	this._controllers = {};
+	this._memberPropertiesToMixWithMessage = [];
 
 	this.getControllers = function(){
 		return this._controllers;
@@ -20,6 +21,10 @@ var ConversationController = function(ConversationDataStore, params){
 
 	if(params.idConversation != null){
 		this.setIdConversation(params.idConversation);
+	}
+
+	if(params.memberPropertiesToMixWithMessage != null){
+		this.setMemberPropertiesToMixWithMessage(params.memberPropertiesToMixWithMessage);
 	}
 
 	if(_.isFunction(params.onCreateConversation)){
@@ -69,6 +74,8 @@ var ConversationController = function(ConversationDataStore, params){
 	this.onCreateConversation();
 
 }
+
+
 
 ConversationController.prototype.onCreateConversation = function()
 {
@@ -188,12 +195,15 @@ ConversationController.prototype.getConversation = function(callbackFn){
 
 	if(existsSavedConversation){
 		console.log('Accesing conversation from dataStore');
+		existsSavedConversation.messages = this.extendMessages(existsSavedConversation.messages);
 		controller.render(existsSavedConversation);
 		if(_.isFunction(callbackFn)) callbackFn(existsSavedConversation);
 	}
 	else{
+		var __this = this;
 		console.log('Accesing conversation from source');
 		this.fetchDataConversation(function(conversation){
+			conversation.messages = __this.extendMessages(conversation.messages);
 			controller.render(conversation);
 			if(_.isFunction(callbackFn)) callbackFn(conversation);
 		});
@@ -225,9 +235,10 @@ ConversationController.prototype.getPreviousUnloadedMessages = function(requeste
 			var messages = [];
 		}
 
-		controller.render(messages.reverse());
+		var extendedMessages = __this.extendMessages(messages);
+		controller.render(extendedMessages.reverse());
 
-		if(_.isFunction(callbackFn)) callbackFn({messages: messages});
+		if(_.isFunction(callbackFn)) callbackFn(extendedMessages);
 	};
 
 	controller.source(searchData, controllerCallback);
@@ -285,24 +296,27 @@ ConversationController.prototype.appendNewMessage = function(message, callbackFn
 
 	//for a better user experience, controller.render doesnt wait 
 	//to be called from controllerCallback
-	controller.render(message);
+	var extendedMessage = __this.extendMessages(message);
+	controller.render(extendedMessage);
 
 	controllerCallback.success = function(message){
 		__this.getCDS().unsetMessageFailedToSent(idMessage);
 		var message = __this.getCDS().getMessage(idMessage);
+		var extendedMessage = __this.extendMessages(message);
 
 		console.log('message sent correctly');
-		controller.render(message);
-		if(_.isFunction(callbackFn)) callbackFn(message);
+		controller.render(extendedMessage);
+		if(_.isFunction(callbackFn)) callbackFn(extendedMessage);
 	};
 
 	controllerCallback.fail = function(message){
 		__this.getCDS().setMessageFailedToSent(idMessage);
 		var message = __this.getCDS().getMessage(idMessage);
+		var extendedMessage = __this.extendMessages(message);
 
 		console.error('message failed');
-		controller.render(message);
-		if(_.isFunction(callbackFn)) callbackFn(message);
+		controller.render(extendedMessage);
+		if(_.isFunction(callbackFn)) callbackFn(extendedMessage);
 	};
 
 	controller.source(message, controllerCallback);
@@ -345,33 +359,72 @@ ConversationController.prototype.setConnectionStatus = function(idMember, status
 	controller.source(idMember, controllerCallback);
 }
 
+ConversationController.prototype.extendMessages = function(messages){
+	return this._mixMessagesWithMemberProperties(messages);
+}
 
-ConversationController.prototype.getMixOfMessagesWithMembers = function()
+ConversationController.prototype.setMemberPropertiesToMixWithMessage = function(properties){
+	if(_.isEmpty(properties)){
+		this._memberPropertiesToMixWithMessage = [];
+		return false;
+	}
+
+	if(_.isArray(properties)){
+		this._memberPropertiesToMixWithMessage = properties;
+	}
+	
+	if(_.isString(properties)){
+		var array = [""+properties+""];
+		this._memberPropertiesToMixWithMessage = array;
+	}
+}
+
+ConversationController.prototype.getMemberPropertiesToMixWithMessage = function(){
+	return this._memberPropertiesToMixWithMessage;
+}
+
+ConversationController.prototype._getMessageMixedWithMemberProperty = function(message, member, property){
+	if(member != undefined){
+		message[property] = member[property];
+	}
+	else{
+		message[property] = "";
+	}
+	return message;
+}
+
+ConversationController.prototype._mixMessagesWithMemberProperties = function(messages)
 {
-	var savedConversation = this.getCDS().getSavedConversation();
-	var messages = savedConversation.messages;
-	var members = savedConversation.members;
+	var propertiesToMix = this.getMemberPropertiesToMixWithMessage();
+	if(_.isEmpty(propertiesToMix)){
+		return messages;
+	}
+	if(!_.isArray(messages)){
+		messages = [messages];
+	}
 
-	var messagesLength = messages.length;
 	var messagesMixed = [];
+	var messages = messages;
+	var messagesLength = messages.length;
+	var __this = this;
 
 	for(var i = 0; i < messagesLength; i++){
-		idUser = messages[i]["idUser"];
-		indexUser = this.getCDS().getIndexById(members, idUser);
+		var member = this.getCDS().getMember(messages[i]["idUser"]);
+		var currentMessage = messages[i];
+		
+		_.each(propertiesToMix, function(property){
+			currentMessage = __this._getMessageMixedWithMemberProperty(
+									currentMessage, 
+									member, 
+									property
+								);
+		});
 
-		if(indexUser == null){
-			aliasUser = "Desconocido";
-		}
-		else{
-			aliasUser = members[indexUser]["alias"];
-		}
+		messagesMixed.push(currentMessage);
+	}
 
-		var dataMessage = {
-			"alias": aliasUser
-		}
-		_.extend(dataMessage, messages[i]);
-
-		messagesMixed.push(dataMessage);
+	if(messagesMixed.length == 1){
+		return messagesMixed[0];
 	}
 
 	return messagesMixed;

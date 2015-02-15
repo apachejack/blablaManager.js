@@ -52,6 +52,13 @@
 
 
 		<script id='message-template' type="text/template">
+			{{#img_perfil}}
+				<img src='{{img_perfil}}' style='width:30px' align='abssmiddle' />
+			{{/img_perfil}}
+			{{^img_perfil}}
+				<img src='http://takingo.com/images/users/user.gif' style='width:30px' align='absmiddle' />
+			{{/img_perfil}}
+
 			Alias: {{alias}} | Mensaje: {{mensaje}} | Id: {{id}} |
 			{{#waiting}}⌚{{/waiting}}
 			{{^waiting}} 
@@ -61,6 +68,13 @@
 		</script>
 
 		<script id='member-template' type="text/template">
+			{{#img_perfil}}
+				<img src='{{img_perfil}}' style='width:30px' align='abssmiddle' />
+			{{/img_perfil}}
+			{{^img_perfil}}
+				<img src='http://takingo.com/images/users/user.gif' style='width:30px' align='absmiddle' />
+			{{/img_perfil}}
+
 			Alias: {{alias}} | Status: {{status}} | Id: {{id}}
 		</script>
 		<script id='member-wrapper-template' type="text/template">
