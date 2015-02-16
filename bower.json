@@ -1,12 +1,16 @@
 {
   "name": "blablaManager.js",
-  "version": "0.2.1",
+  "version": "0.3.1",
   "homepage": "https://github.com/apachejack/blablaManager.js",
   "authors": [
     "José Carlos Gómez <heypixelweb@gmail.com>"
   ],
   "description": "Simple and intuitive API for managing javascript chat conversations. Highly configurable.",
-  "main": ["src/BlablaManager.js", "src/ConversationDataStore.js"], 
+  "main": [
+    "src/ConversationDataStore.js", 
+    "src/BlablaRenderHandler.js", 
+    "src/BlablaManager.js"
+  ], 
   "moduleType": [
     "amd",
     "globals"
