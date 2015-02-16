@@ -8,6 +8,13 @@
     }
 }(this, function (_) {
 
+/**
+ * Description
+ * @class ConversationDS
+ * @constructor
+ * @param {} params
+ * @return 
+ */
 var ConversationDS = function(params){
 	this._messages = [];
 	this._members = [];
@@ -19,6 +26,13 @@ var ConversationDS = function(params){
 
 }
 
+/**
+ * Description
+ * @method getIndexById
+ * @param {} data
+ * @param {} idData
+ * @return index
+ */
 ConversationDS.prototype.getIndexById = function(data, idData){
 	var dataLength = data.length;
 	var idData = parseInt(idData);
@@ -35,31 +49,69 @@ ConversationDS.prototype.getIndexById = function(data, idData){
 }
 
 
+/**
+ * Description
+ * @method setIdConversation
+ * @param {} idConversation
+ * @return 
+ */
 ConversationDS.prototype.setIdConversation = function(idConversation){
 	this._idConversation = parseInt(idConversation);
 }
 
+/**
+ * Description
+ * @method getIdConversation
+ * @return MemberExpression
+ */
 ConversationDS.prototype.getIdConversation = function(){
 	return this._idConversation;
 }
 
+/**
+ * Description
+ * @method getMessages
+ * @return MemberExpression
+ */
 ConversationDS.prototype.getMessages = function(){
 	return this._messages;
 }
 
+/**
+ * Description
+ * @method getTotalMessages
+ * @return MemberExpression
+ */
 ConversationDS.prototype.getTotalMessages = function(){
 	return this.getMessages().length;
 }
 
+/**
+ * Description
+ * @method getMessage
+ * @param {} idMessage
+ * @return message
+ */
 ConversationDS.prototype.getMessage = function(idMessage){
 	var message = _.findWhere(this.getMessages(), {id: parseInt(idMessage)});
 	return message;
 }
 
+/**
+ * Description
+ * @method deleteAllMessages
+ * @return 
+ */
 ConversationDS.prototype.deleteAllMessages = function(){
 	this._messages = [];
 }
 
+/**
+ * Description
+ * @method prependMessages
+ * @param {} messages
+ * @return Literal
+ */
 ConversationDS.prototype.prependMessages = function(messages){
 	if(!_.isArray(messages)){
 		return this._pushMessage(messages, "UNSHIFT");
@@ -81,6 +133,12 @@ ConversationDS.prototype.prependMessages = function(messages){
 
 }
 
+/**
+ * Description
+ * @method addMessages
+ * @param {} messages
+ * @return Literal
+ */
 ConversationDS.prototype.addMessages = function(messages){
 
 	if(!_.isArray(messages)){
@@ -102,6 +160,12 @@ ConversationDS.prototype.addMessages = function(messages){
 }
 
 
+/**
+ * Description
+ * @method getIdObject
+ * @param {} object
+ * @return CallExpression
+ */
 ConversationDS.prototype.getIdObject = function(object){
 	if(!_.has(object, "id")){
 		console.error('getIdObject just accept objects with id property');
@@ -146,15 +210,32 @@ ConversationDS.prototype._pushMessage = function(message, insertMethod){
 }
 
 
+/**
+ * Description
+ * @method getMembers
+ * @return MemberExpression
+ */
 ConversationDS.prototype.getMembers = function(){
 	return this._members;
 }
 
+/**
+ * Description
+ * @method getMember
+ * @param {} idMember
+ * @return member
+ */
 ConversationDS.prototype.getMember = function(idMember){
 	var member = _.findWhere(this.getMembers(), {id: parseInt(idMember)});
 	return member;
 }
 
+/**
+ * Description
+ * @method addMembers
+ * @param {} members
+ * @return Literal
+ */
 ConversationDS.prototype.addMembers = function(members){
 
 	if(!_.isArray(members)){
@@ -171,6 +252,13 @@ ConversationDS.prototype.addMembers = function(members){
 	return true;
 }
 
+/**
+ * Description
+ * @method setMemberProperties
+ * @param {} idMember
+ * @param {} properties
+ * @return 
+ */
 ConversationDS.prototype.setMemberProperties = function(idMember, properties){
 	/*
 	returns a member object with the new properties
@@ -228,6 +316,13 @@ ConversationDS.prototype._replaceListItemWithObject = function(array, index, obj
 	
 }
 
+/**
+ * Description
+ * @method setMessageProperties
+ * @param {} idMessage
+ * @param {} properties
+ * @return 
+ */
 ConversationDS.prototype.setMessageProperties = function(idMessage, properties){
 	/*
 	returns a message object with the new properties
@@ -258,10 +353,22 @@ ConversationDS.prototype.setMessageProperties = function(idMessage, properties){
 }
 
 
+/**
+ * Description
+ * @method setMessageFailedToSent
+ * @param {} idMessage
+ * @return CallExpression
+ */
 ConversationDS.prototype.setMessageFailedToSent = function(idMessage){
 	return this.setMessageProperties(idMessage, {failedToSent: true});
 }
 
+/**
+ * Description
+ * @method unsetMessageFailedToSent
+ * @param {} idMessage
+ * @return CallExpression
+ */
 ConversationDS.prototype.unsetMessageFailedToSent = function(idMessage){
 	return this.setMessageProperties(idMessage, {failedToSent: false});
 }
@@ -305,6 +412,11 @@ ConversationDS.prototype._pushMember = function(member){
 	return this._members.push(member);
 }
 
+/**
+ * Description
+ * @method resetMembers
+ * @return 
+ */
 ConversationDS.prototype.resetMembers = function(){
 	this._members = [];
 }
@@ -313,10 +425,21 @@ ConversationDS.prototype._setMembers = function(members){
 	this._members = members;
 }
 
+/**
+ * Description
+ * @method resetMessages
+ * @return 
+ */
 ConversationDS.prototype.resetMessages = function(){
 	this._messages = [];
 }
 
+/**
+ * Description
+ * @method deleteMember
+ * @param {} idMember
+ * @return Literal
+ */
 ConversationDS.prototype.deleteMember = function(idMember){
 	var members = this.getMembers();
 	var index = this.getIndexById(members, idMember);
@@ -334,6 +457,12 @@ ConversationDS.prototype.deleteMember = function(idMember){
 }
 
 
+/**
+ * Description
+ * @method deleteMessage
+ * @param {} idMessage
+ * @return Literal
+ */
 ConversationDS.prototype.deleteMessage = function(idMessage){
 	var messages = this.getMessages();
 	var index = this.getIndexById(messages, idMessage);
@@ -350,12 +479,22 @@ ConversationDS.prototype.deleteMessage = function(idMessage){
 	return false;
 }
 
+/**
+ * Description
+ * @method deleteAllMessages
+ * @return 
+ */
 ConversationDS.prototype.deleteAllMessages = function(){
 	this._messages = [];
 }
 
 
 
+/**
+ * Description
+ * @method getSavedConversation
+ * @return ObjectExpression
+ */
 ConversationDS.prototype.getSavedConversation = function(){
 	return {
 		"messages": this.getMessages(), 
@@ -363,6 +502,11 @@ ConversationDS.prototype.getSavedConversation = function(){
 	}
 }
 
+/**
+ * Description
+ * @method existsSavedConversation
+ * @return savedConversation
+ */
 ConversationDS.prototype.existsSavedConversation = function(){
 	var savedConversation = this.getSavedConversation();
 	if(!savedConversation.messages.length && !savedConversation.members.length){
