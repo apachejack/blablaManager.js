@@ -10,6 +10,7 @@
 
 var BlablaRenderHandler = function(){
 	this._dispatchRenders = true;
+	this.enqueuedRenders = [];
 }
 
 BlablaRenderHandler.prototype._setDispatchRenders = function(value){
@@ -28,24 +29,32 @@ BlablaRenderHandler.prototype.disableRenders = function(){
 	this._setDispatchRenders(false);
 }
 
-BlablaRenderHandler.prototype.capture = function(controller, args){
-	if(!this.isEnabledRenders()){
-		return ;
-	}
-
-	if(!this.isValidController(controller)){
+BlablaRenderHandler.prototype.capture = function(render, args){
+	if(!this.isValidRender(render)){
 		return false;
 	}
 
-	controller.render(args);
+	render(args);
 }
 
-BlablaRenderHandler.prototype.isValidController = function(controller){
-	if(!_.has(controller, "render") || !_.isFunction(controller.render)){
-		console.error("the captured controller must have a render function");
+BlablaRenderHandler.prototype.isValidRender = function(render){
+	if(!_.isFunction(render)){
+		console.error("the captured render must be a function");
 		return false;
 	}
 	return true;
+}
+
+BlablaRenderHandler.prototype.dispatchEnqueuedRenders = function(){
+	_.each(this.enqueuedRenders, function(enqueued){
+		var renderFn = function(){
+			return enqueued.render;
+		}
+
+		renderFn(enqueued.args);
+	});
+
+
 }
 
 return BlablaRenderHandler;

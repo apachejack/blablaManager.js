@@ -297,7 +297,7 @@ BlablaManager.prototype.getConversation = function(callbackFn){
 	if(existsSavedConversation){
 		window.debugBlablaManager('Accesing conversation from dataStore');
 		existsSavedConversation.messages = this.extendMessages(existsSavedConversation.messages);
-		this.getRH().capture(controller, existsSavedConversation);
+		this.getRH().capture(controller.render, existsSavedConversation);
 		if(_.isFunction(callbackFn)) callbackFn(existsSavedConversation);
 	}
 	else{
@@ -305,7 +305,7 @@ BlablaManager.prototype.getConversation = function(callbackFn){
 		window.debugBlablaManager('Accesing conversation from source');
 		this.fetchDataConversation(function(conversation){
 			conversation.messages = __this.extendMessages(conversation.messages);
-			__this.getRH().capture(controller, conversation);
+			__this.getRH().capture(controller.render, conversation);
 			if(_.isFunction(callbackFn)) callbackFn(conversation);
 		});
 	}
@@ -350,7 +350,7 @@ BlablaManager.prototype.getPreviousUnloadedMessages = function(requested_message
 		}
 
 		var extendedMessages = __this.extendMessages(messages);
-		__this.getRH().capture(controller, extendedMessages.reverse());
+		__this.getRH().capture(controller.render, extendedMessages.reverse());
 
 		if(_.isFunction(callbackFn)) callbackFn(extendedMessages);
 	};
@@ -384,7 +384,7 @@ BlablaManager.prototype.kickMember = function(idMember, callbackFn)
 	controllerCallback.success = function(){		
 		__this.getCDS().deleteMember(idMember);
 		window.debugBlablaManager('member kicked correctly');
-		__this.getRH().capture(controller, member);
+		__this.getRH().capture(controller.render, member);
 		if(_.isFunction(callbackFn)) callbackFn(member);
 	};
 
@@ -413,7 +413,7 @@ BlablaManager.prototype.joinMember = function(member, callbackFn)
 	controllerCallback.success = function(member){
 		if(__this.getCDS().addMembers(member)){
 			window.debugBlablaManager('member joined correctly');
-			__this.getRH().capture(controller, member);
+			__this.getRH().capture(controller.render, member);
 			if(_.isFunction(callbackFn)) callbackFn(member);
 		}
 	};
@@ -443,7 +443,7 @@ BlablaManager.prototype.sendNewMessage = function(message, callbackFn)
 	//for a better user experience, controller.render doesnt wait 
 	//to be called from controllerCallback
 	var extendedMessage = __this.extendMessages(message);
-	__this.getRH().capture(controller, extendedMessage);
+	__this.getRH().capture(controller.render, extendedMessage);
 
 	/**
 	 * Description
@@ -457,7 +457,7 @@ BlablaManager.prototype.sendNewMessage = function(message, callbackFn)
 		var extendedMessage = __this.extendMessages(message);
 
 		window.debugBlablaManager('message sent correctly');
-		__this.getRH().capture(controller, extendedMessage);
+		__this.getRH().capture(controller.render, extendedMessage);
 		if(_.isFunction(callbackFn)) callbackFn(extendedMessage);
 	};
 
@@ -473,7 +473,7 @@ BlablaManager.prototype.sendNewMessage = function(message, callbackFn)
 		var extendedMessage = __this.extendMessages(message);
 
 		window.debugBlablaManager('message failed');
-		__this.getRH().capture(controller, extendedMessage);
+		__this.getRH().capture(controller.render, extendedMessage);
 		if(_.isFunction(callbackFn)) callbackFn(extendedMessage);
 	};
 
@@ -509,7 +509,7 @@ BlablaManager.prototype.listenNewMessages = function(callbackFn)
 
 		var extendedMessages = __this.extendMessages(messages);
 		window.debugBlablaManager('message received correctly');
-		__this.getRH().capture(controller, extendedMessages);
+		__this.getRH().capture(controller.render, extendedMessages);
 		if(_.isFunction(callbackFn)) callbackFn(extendedMessages);
 	};
 
@@ -552,7 +552,7 @@ BlablaManager.prototype.deleteMessage = function(idMessage, callbackFn)
 	controllerCallback.success = function(data){
 		__this.getCDS().deleteMessage(idMessage);
 		window.debugBlablaManager('message removed correctly');
-		__this.getRH().capture(controller, {"id": idMessage});
+		__this.getRH().capture(controller.render, {"id": idMessage});
 		if(_.isFunction(callbackFn)) callbackFn(data);
 	};
 
@@ -584,7 +584,7 @@ BlablaManager.prototype.setConnectionStatus = function(idMember, statusMember, c
 			window.debugBlablaManager('status cant be changed. Error');
 		}
 		else{
-			__this.getRH().capture(controller, member);
+			__this.getRH().capture(controller.render, member);
 		}
 		
 		if(_.isFunction(callbackFn)) callbackFn(member);
