@@ -34,7 +34,27 @@ BlablaRenderHandler.prototype.capture = function(render, args){
 		return false;
 	}
 
-	render(args);
+	if(this.isEnabledRenders()){
+		render(args);
+	}
+	else{
+		this.enqueueRender(render, args);
+	}
+}
+
+BlablaRenderHandler.prototype.deleteEnqueuedRenders = function(){
+	this.enqueuedRenders = [];
+}
+
+BlablaRenderHandler.prototype.enqueueRender = function(render, args){
+	var renderSaved = {
+		fn: function(args){
+			return render(args);
+		}, 
+		arguments: args
+	};
+
+	this.enqueuedRenders.push(renderSaved);
 }
 
 BlablaRenderHandler.prototype.isValidRender = function(render){
@@ -46,15 +66,19 @@ BlablaRenderHandler.prototype.isValidRender = function(render){
 }
 
 BlablaRenderHandler.prototype.dispatchEnqueuedRenders = function(){
-	_.each(this.enqueuedRenders, function(enqueued){
-		var renderFn = function(){
-			return enqueued.render;
+	var executeEnqueued = function(enqueued){
+		var fn = enqueued.fn;
+		var args = enqueued.arguments;
+
+		try {
+			fn(args);
 		}
-
-		renderFn(enqueued.args);
-	});
-
-
+		catch(err) {
+    		console.error(err.message);
+		}
+	};
+	_.each(this.enqueuedRenders, executeEnqueued);
+	this.deleteEnqueuedRenders();
 }
 
 return BlablaRenderHandler;

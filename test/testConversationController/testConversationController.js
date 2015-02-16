@@ -22,6 +22,7 @@
 
 window.DEBUG_BLABLAMANAGER = true;
 
+
 window.generateNewMessage = function(){
 	var justone = true;
 
@@ -484,5 +485,7 @@ function listeners(){
 }
 
 $(document).ready(listeners);
+
+
 
 }));

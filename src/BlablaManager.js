@@ -112,12 +112,13 @@ BlablaManager.prototype.onCreateConversation = function()
 }
 
 
-BlablaManager.prototype.getRH = function(RenderHandler){
+BlablaManager.prototype.getRH = function(){
 	return this._RenderHandler;
 }
 
 BlablaManager.prototype.enableRenders = function(){
-	return this.getRH().enableRenders();
+	this.getRH().dispatchEnqueuedRenders();
+	this.getRH().enableRenders();
 }
 
 BlablaManager.prototype.disableRenders = function(){
@@ -290,7 +291,6 @@ BlablaManager.prototype.getConversation = function(callbackFn){
 	}
 
 	var controller = this.getControllers().getConversation;
-	var controllerCallback = {};
 
 	var existsSavedConversation = this.getCDS().existsSavedConversation();
 
@@ -665,7 +665,7 @@ BlablaManager.prototype._mixMessagesWithMemberProperties = function(messages)
 	var __this = this;
 
 	for(var i = 0; i < messagesLength; i++){
-		var member = this.getCDS().getMember(messages[i]["idUser"]);
+		var member = this.getCDS().getMember(messages[i].idUser);
 		var currentMessage = messages[i];
 		
 		_.each(propertiesToMix, function(property){
