@@ -39,7 +39,6 @@ var BlablaManager = function(ConversationDataStore, params){
 	this._setBasicController("onCreateConversation", params.onCreateConversation);
 	this._setBasicController("members", params.sourceMembers);
 	this._setBasicController("messages", params.sourceMessages);
-	this._setBasicController("conversation", params.sourceConversation);
 	this._setSourceRenderController("sendNewMessage", params.sendNewMessage);
 	this._setSourceRenderController("deleteMessage", params.deleteMessage);
 	this._setSourceRenderController("kickMember", params.kickMember);
@@ -48,12 +47,7 @@ var BlablaManager = function(ConversationDataStore, params){
 	this._setSourceRenderController("previousUnloadedMessages", params.previousUnloadedMessages);
 	this._setSourceRenderController("listenNewMessages", params.listenNewMessages);
 	this._setBasicController("stopListenNewMessages", params.stopListenNewMessages);
-
-	if(_.isObject(params.getConversation)){
-		this.getControllers().getConversation = params.getConversation;
-	}
-
-	this.onCreateConversation();
+	this._setSourceRenderController("getConversation", params.getConversation);
 
 }
 
@@ -168,43 +162,6 @@ BlablaManager.prototype.getIdConversation = function()
 	return idConversation;
 }
 
-/**
- * Description
- * @method fetchDataConversation
- * @param {} callbackFn
- * @return 
- */
-BlablaManager.prototype.fetchDataConversation = function(callbackFn)
-{
-	if(!_.isFunction(this.getControllers().conversation)){
-		window.debugBlablaManager('Must define params.sourceConversation before use fetchDataConversation');
-		return false;
-	}
-
-	var controllerCallback = {};
-	var __this = this;
-
-	/**
-	 * Description
-	 * @method success
-	 * @param {} data
-	 * @return 
-	 */
-	controllerCallback.success = function(data){
-		if(!_.has(data, "members") || !_.has(data, "messages")){
-			window.debugBlablaManager('data provided by controllerCallback.success needs members and messages');
-			return false;
-		}
-
-		__this.getCDS().resetMembers();
-		__this.getCDS().resetMessages();
-		__this.getCDS().addMembers(data.members);
-		__this.getCDS().addMessages(data.messages);
-		if(_.isFunction(callbackFn)) callbackFn(data);
-	};
-
-	this.getControllers().conversation(controllerCallback);
-}
 
 /**
  * Description
@@ -280,35 +237,73 @@ BlablaManager.prototype.fetchDataMessages = function(callbackFn)
 
 /**
  * Description
+ Loads data conversation from source and renders 
  * @method getConversation
  * @param {} callbackFn
  * @return 
  */
 BlablaManager.prototype.getConversation = function(callbackFn){
-	if(!_.isObject(this.getControllers().getConversation)){
+	var controller = this.getControllers().getConversation;
+
+	if(!_.isObject(controller)){
 		window.debugBlablaManager('Must define params.getConversation before use getConversation');
 		return false;
 	}
 
+	var controllerCallback = {};
+	var __this = this;
+
+	controllerCallback.success = function(conversation){
+		if(!_.has(conversation, "members") || !_.has(conversation, "messages")){
+			window.debugBlablaManager('data provided by controllerCallback.success needs members and messages');
+			return false;
+		}
+
+		__this.getCDS().resetMembers();
+		__this.getCDS().resetMessages();
+		__this.getCDS().addMembers(conversation.members);
+		__this.getCDS().addMessages(conversation.messages);
+
+		conversation.messages = __this.extendMessages(conversation.messages);
+		__this.getRH().capture(controller.render, conversation);
+		if(_.isFunction(callbackFn)) callbackFn(conversation);
+	}
+
+	controller.source(controllerCallback);
+
+}
+
+
+/**
+ * Description
+ Loads all the conversation data to DataStore from the controller.source 
+ but doesnt call controler.render
+ * @method fetchConversation
+ * @param {} callbackFn
+ * @return 
+ */
+BlablaManager.prototype.fetchConversation = function(callbackFn){
+	if(!_.isObject(this.getControllers().getConversation)){
+		window.debugBlablaManager('Must define params.getConversation before use fetchConversation');
+		return false;
+	}
 	var controller = this.getControllers().getConversation;
 
-	var existsSavedConversation = this.getCDS().existsSavedConversation();
+	controllerCallback.success = function(data){
+		if(!_.has(data, "members") || !_.has(data, "messages")){
+			window.debugBlablaManager('data provided by controllerCallback.success needs members and messages');
+			return false;
+		}
 
-	if(existsSavedConversation){
-		window.debugBlablaManager('Accesing conversation from dataStore');
-		existsSavedConversation.messages = this.extendMessages(existsSavedConversation.messages);
-		this.getRH().capture(controller.render, existsSavedConversation);
-		if(_.isFunction(callbackFn)) callbackFn(existsSavedConversation);
-	}
-	else{
-		var __this = this;
-		window.debugBlablaManager('Accesing conversation from source');
-		this.fetchDataConversation(function(conversation){
-			conversation.messages = __this.extendMessages(conversation.messages);
-			__this.getRH().capture(controller.render, conversation);
-			if(_.isFunction(callbackFn)) callbackFn(conversation);
-		});
-	}
+		__this.getCDS().resetMembers();
+		__this.getCDS().resetMessages();
+		__this.getCDS().addMembers(data.members);
+		__this.getCDS().addMessages(data.messages);
+		if(_.isFunction(callbackFn)) callbackFn(data);
+	};
+
+	controller.source(controllerCallback);
+
 
 }
 

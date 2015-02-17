@@ -54,7 +54,7 @@ window.generateNewMessage = function(){
 
 setInterval(function(){
 	$(document).trigger("message-received.chat", window.generateNewMessage());
-}, 6000);
+}, 2000);
 
 
 window.messages = [
@@ -208,12 +208,12 @@ var params = {
 			controllerCallback.success(window.messages);
 		}, 600);
 	}, 
-	sourceConversation: function(controllerCallback){
-		setTimeout(function(){
-			controllerCallback.success({messages: window.messages, members: window.members});
-		}, 600);
-	}, 
 	getConversation: {
+		source: function(controllerCallback){
+			setTimeout(function(){
+				controllerCallback.success({messages: window.messages, members: window.members});
+			}, 600);
+		},
 		render: function(conversation){
 			var tmplConversation = $("#conversation-template").html();
 			var data = conversation;
