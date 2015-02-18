@@ -421,7 +421,7 @@ function listeners(){
 
 	//console.log('id conversacion: '+blabla.getIdConversation());
 
-	blabla.getConversation(function(conversation){
+	blabla.loadConversation(function(conversation){
 
 		//console.log(blabla.getCDS().getMessages());
 
@@ -473,7 +473,7 @@ function listeners(){
 		//console.log(blabla.getCDS().getMessage(1455));
 
 		/*
-		blabla.getConversation(function(conversation){
+		blabla.loadConversation(function(conversation){
 			alert('imprimida de nuevo');
 		});
 		*/

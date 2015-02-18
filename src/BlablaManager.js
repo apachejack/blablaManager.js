@@ -37,6 +37,7 @@ var BlablaManager = function(ConversationDataStore, params){
 	this.setMemberPropertiesToMixWithMessage(params.memberPropertiesToMixWithMessage);
 
 	this._setBasicController("onCreateConversation", params.onCreateConversation);
+	this._setSourceRenderController("getConversation", params.getConversation);
 	this._setBasicController("members", params.sourceMembers);
 	this._setBasicController("messages", params.sourceMessages);
 	this._setSourceRenderController("sendNewMessage", params.sendNewMessage);
@@ -47,7 +48,9 @@ var BlablaManager = function(ConversationDataStore, params){
 	this._setSourceRenderController("previousUnloadedMessages", params.previousUnloadedMessages);
 	this._setSourceRenderController("listenNewMessages", params.listenNewMessages);
 	this._setBasicController("stopListenNewMessages", params.stopListenNewMessages);
-	this._setSourceRenderController("getConversation", params.getConversation);
+	
+	//execute defined orders on onCreateConversation controller
+	this.getControllers().onCreateConversation(this);
 
 }
 
@@ -242,8 +245,26 @@ BlablaManager.prototype.fetchDataMessages = function(callbackFn)
  * @param {} callbackFn
  * @return 
  */
-BlablaManager.prototype.getConversation = function(callbackFn){
+BlablaManager.prototype.loadConversation = function(callbackFn){
+	return this._getConversation(callbackFn, true);
+}
+
+
+/**
+ * Description
+ Loads all the conversation data to DataStore from the controller.source 
+ but doesnt call controler.render
+ * @method fetchConversation
+ * @param {} callbackFn
+ * @return 
+ */
+BlablaManager.prototype.fetchConversation = function(callbackFn){
+	return this._getConversation(callbackFn, false);
+}
+
+BlablaManager.prototype._getConversation = function(callbackFn, render){
 	var controller = this.getControllers().getConversation;
+	var must_render = ((_.isBoolean(render)) ? render : false);
 
 	if(!_.isObject(controller)){
 		window.debugBlablaManager('Must define params.getConversation before use getConversation');
@@ -265,47 +286,16 @@ BlablaManager.prototype.getConversation = function(callbackFn){
 		__this.getCDS().addMessages(conversation.messages);
 
 		conversation.messages = __this.extendMessages(conversation.messages);
-		__this.getRH().capture(controller.render, conversation);
+		if(must_render){
+			__this.getRH().capture(controller.render, conversation);
+		}
+
 		if(_.isFunction(callbackFn)) callbackFn(conversation);
 	}
 
-	controller.source(controllerCallback);
-
+	controller.source(controllerCallback);	
 }
 
-
-/**
- * Description
- Loads all the conversation data to DataStore from the controller.source 
- but doesnt call controler.render
- * @method fetchConversation
- * @param {} callbackFn
- * @return 
- */
-BlablaManager.prototype.fetchConversation = function(callbackFn){
-	if(!_.isObject(this.getControllers().getConversation)){
-		window.debugBlablaManager('Must define params.getConversation before use fetchConversation');
-		return false;
-	}
-	var controller = this.getControllers().getConversation;
-
-	controllerCallback.success = function(data){
-		if(!_.has(data, "members") || !_.has(data, "messages")){
-			window.debugBlablaManager('data provided by controllerCallback.success needs members and messages');
-			return false;
-		}
-
-		__this.getCDS().resetMembers();
-		__this.getCDS().resetMessages();
-		__this.getCDS().addMembers(data.members);
-		__this.getCDS().addMessages(data.messages);
-		if(_.isFunction(callbackFn)) callbackFn(data);
-	};
-
-	controller.source(controllerCallback);
-
-
-}
 
 
 /**
