@@ -393,7 +393,7 @@ function listeners(){
 			id: _.now(), 
 			idUser: 28, 
 			fecha: _.now(), 
-			waiting: true,
+			waiting: true
 		}
 
 		blabla.sendNewMessage(message);
