@@ -8,6 +8,8 @@
     }
 }(this, function (_, ConversationDataStore, BlablaRenderHandler) {
 
+"use strict";
+
 /**
  * Description
  * @class BlablaManager

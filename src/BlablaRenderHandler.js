@@ -8,6 +8,8 @@
     }
 }(this, function (_) {
 
+"use strict";
+
 var BlablaRenderHandler = function(){
 	this._dispatchRenders = true;
 	this.enqueuedRenders = [];

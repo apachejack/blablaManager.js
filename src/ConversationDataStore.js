@@ -8,6 +8,8 @@
     }
 }(this, function (_) {
 
+"use strict";
+
 /**
  * Description
  * @class ConversationDS
