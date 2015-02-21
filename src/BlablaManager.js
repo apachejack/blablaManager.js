@@ -1,12 +1,12 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['underscore', 'BlablaRenderHandler'], factory);
+        define(['underscore', 'ConversationDataStore', 'BlablaRenderHandler'], factory);
     } else {
         // Browser globals
-        root.BlablaManager = factory(root._, root.BlablaRenderHandler);
+        root.BlablaManager = factory(root._, root.ConversationDataStore, root.BlablaRenderHandler);
     }
-}(this, function (_, BlablaRenderHandler) {
+}(this, function (_, ConversationDataStore, BlablaRenderHandler) {
 
 /**
  * Description
@@ -16,11 +16,13 @@
  * @param {} params
  * @return 
  */
-var BlablaManager = function(ConversationDataStore, params){
+var BlablaManager = function(params){
 	this._ConversationDataStore = null;
 	this._controllers = {};
 	this._memberPropertiesToMixWithMessage = [];
-	this._RenderHandler = new BlablaRenderHandler();
+
+	this.setRH(BlablaRenderHandler);
+	this.setCDS(ConversationDataStore);
 
 	/**
 	 * Description
@@ -32,7 +34,7 @@ var BlablaManager = function(ConversationDataStore, params){
 		if(window.DEBUG_BLABLAMANAGER) console.log(msg);
 	}
 
-	this.setCDS(ConversationDataStore);
+	
 	this.setIdConversation(params.idConversation);
 	this.setMemberPropertiesToMixWithMessage(params.memberPropertiesToMixWithMessage);
 
@@ -108,6 +110,11 @@ BlablaManager.prototype.onCreateConversation = function()
 	onCreateConversation(this);
 }
 
+BlablaManager.prototype.setRH = function(RH)
+{
+	this._RenderHandler = new RH();
+}
+
 
 BlablaManager.prototype.getRH = function(){
 	return this._RenderHandler;
@@ -132,6 +139,10 @@ BlablaManager.prototype.setCDS = function(CDS)
 {
 	this._ConversationDataStore = new CDS({});
 }
+
+
+
+
 
 /**
  * Description

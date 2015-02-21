@@ -4,7 +4,6 @@
         		"jquery", 
         		"underscore", 
         		"mustache", 
-        		"../../src/ConversationDataStore", 
         		"../../src/BlablaManager"
         		], factory);
     } else if (typeof exports === "object") {
@@ -12,13 +11,12 @@
         						require("jquery"), 
         						require("underscore"), 
         						require("mustache"), 
-        						require("../../src/ConversationDataStore"), 
         						require("../../src/BlablaManager")
         						);
     } else {
-        root.testConversacionController = factory(root.$, root._, root.Mustache, root.ConversationDataStore, root.BlablaManager);
+        root.testConversacionController = factory(root.$, root._, root.Mustache, root.BlablaManager);
     }
-}(this, function ($, _, Mustache, ConversationDataStore, BlablaManager) {
+}(this, function ($, _, Mustache, BlablaManager) {
 
 window.DEBUG_BLABLAMANAGER = true;
 
@@ -417,7 +415,7 @@ function listeners(){
 	});
 
 
-	blabla = new BlablaManager(ConversationDataStore, params);
+	blabla = new BlablaManager(params);
 
 	//console.log('id conversacion: '+blabla.getIdConversation());
 
