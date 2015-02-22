@@ -1,7 +1,7 @@
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
-        define(['underscore', 'ConversationDataStore', 'BlablaRenderHandler'], factory);
+        define(['underscore', './ConversationDataStore', './BlablaRenderHandler'], factory);
     } else {
         // Browser globals
         root.BlablaManager = factory(root._, root.ConversationDataStore, root.BlablaRenderHandler);
