@@ -379,8 +379,8 @@ BlablaManager.prototype.kickMember = function(idMember, callbackFn)
 	 * @method success
 	 * @return 
 	 */
-	controllerCallback.success = function(){		
-		__this.getCDS().deleteMember(idMember);
+	controllerCallback.success = function(member){	
+		__this.getCDS().deleteMember(member.id);
 		window.debugBlablaManager('member kicked correctly');
 		__this.getRH().capture(controller.render, member);
 		if(_.isFunction(callbackFn)) callbackFn(member);

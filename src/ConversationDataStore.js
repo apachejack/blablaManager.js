@@ -37,7 +37,6 @@ var ConversationDS = function(params){
  */
 ConversationDS.prototype.getIndexById = function(data, idData){
 	var dataLength = data.length;
-	var idData = parseInt(idData);
 	var index = null;
 
 	for (var i = 0; i < dataLength; i++){ 
@@ -58,7 +57,8 @@ ConversationDS.prototype.getIndexById = function(data, idData){
  * @return 
  */
 ConversationDS.prototype.setIdConversation = function(idConversation){
-	this._idConversation = parseInt(idConversation);
+	var id = String(idConversation);
+	this._idConversation = id;
 }
 
 /**
@@ -95,7 +95,8 @@ ConversationDS.prototype.getTotalMessages = function(){
  * @return message
  */
 ConversationDS.prototype.getMessage = function(idMessage){
-	var message = _.findWhere(this.getMessages(), {id: parseInt(idMessage)});
+	var id = String(idMessage);
+	var message = _.findWhere(this.getMessages(), {id: id});
 	return message;
 }
 
@@ -174,7 +175,7 @@ ConversationDS.prototype.getIdObject = function(object){
 		return false;
 	}
 
-	return parseInt(object.id);
+	return object.id;
 }
 
 ConversationDS.prototype._validateMessage = function(message){
@@ -196,6 +197,9 @@ ConversationDS.prototype._validateMessage = function(message){
 ConversationDS.prototype._pushMessage = function(message, insertMethod){
 	if(!this._validateMessage(message)) return false;
 	var insertMethod = ((insertMethod == null) ? "PUSH" : insertMethod);
+
+	message.id = String(message.id);
+	message.idUser = String(message.idUser);
 
 	if(this.getMessage(message.id) != undefined){
 		console.error('cant add messages with repeated id');
@@ -228,7 +232,8 @@ ConversationDS.prototype.getMembers = function(){
  * @return member
  */
 ConversationDS.prototype.getMember = function(idMember){
-	var member = _.findWhere(this.getMembers(), {id: parseInt(idMember)});
+	var id = String(idMember);
+	var member = _.findWhere(this.getMembers(), {id: id});
 	return member;
 }
 
@@ -406,6 +411,8 @@ ConversationDS.prototype._validateMember = function(member){
 ConversationDS.prototype._pushMember = function(member){
 	if(!this._validateObjectItem(member)) return false;
 
+	member.id = String(member.id);
+
 	if(this.getMember(member.id) != undefined){
 		console.error('cant exists members with repeated ids');
 		return false;
@@ -443,6 +450,7 @@ ConversationDS.prototype.resetMessages = function(){
  * @return Literal
  */
 ConversationDS.prototype.deleteMember = function(idMember){
+	var idMember = String(idMember);
 	var members = this.getMembers();
 	var index = this.getIndexById(members, idMember);
 
@@ -466,6 +474,7 @@ ConversationDS.prototype.deleteMember = function(idMember){
  * @return Literal
  */
 ConversationDS.prototype.deleteMessage = function(idMessage){
+	var idMessage = String(idMessage);
 	var messages = this.getMessages();
 	var index = this.getIndexById(messages, idMessage);
 

@@ -306,7 +306,7 @@ var params = {
 
 			setTimeout(function(){
 				if(successWhileSend){
-					controllerCallback.success();
+					controllerCallback.success(member);
 				}
 			}, 600);
 
