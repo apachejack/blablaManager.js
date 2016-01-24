@@ -1,10 +1,4 @@
 describe("Tests for ConversationDataStore", function(){
-	it("A should be equal to B", function(){
-		var a = "caca";
-		var b = "caca";
-
-		expect(a).toBe(b);
-	});
 
 	describe("Tests for store data", function(){
 		var CDS;
